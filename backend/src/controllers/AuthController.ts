@@ -40,7 +40,7 @@ export async function login(req: Request, res: Response) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "12h" });
 
     // Set cookie httpOnly
     res.cookie("token", token, {
@@ -61,7 +61,6 @@ export async function logout(req: Request, res: Response) {
     httpOnly: true,
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
-    maxAge: 1000 * 60 * 60 * 12, // ms * s * m * h
 
   });
   res.json({ message: "Logout successful" });
