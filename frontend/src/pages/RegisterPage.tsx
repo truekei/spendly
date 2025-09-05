@@ -11,10 +11,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 // Zod schema for form validation
-const User = z.object({
+const UserSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(128, "Name must be at most 128 characters"),
   email: z.email(),
   password: z.string().min(6, "Password must be at least 6 characters").max(64, "Password must be at most 64 characters"),
@@ -22,8 +23,8 @@ const User = z.object({
 
 export default function RegisterPage() {
   // Initialize the form with react-hook-form and zod resolver
-  const form = useForm<z.infer<typeof User>>({
-    resolver: zodResolver(User),
+  const form = useForm<z.infer<typeof UserSchema>>({
+    resolver: zodResolver(UserSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -35,11 +36,12 @@ export default function RegisterPage() {
   const name = form.watch("name");
   const email = form.watch("email");
   const password = form.watch("password");
+  const navigate = useNavigate();
 
   // Disable the submit button if any field is empty or the form is submitting
   const isDisabled = !name || !email || !password || form.formState.isSubmitting;
 
-  async function onSubmit(values: z.infer<typeof User>) {
+  async function onSubmit(values: z.infer<typeof UserSchema>) {
     try {
       const res = await axios.post("http://localhost:5000/api/auth/register", {
         name: values.name,
@@ -47,6 +49,7 @@ export default function RegisterPage() {
         password: values.password
       });
       console.log(res.data);
+      navigate("/login");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       if (err.response?.status === 400) {
