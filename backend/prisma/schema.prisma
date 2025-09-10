@@ -19,6 +19,7 @@ model User {
   email         String @unique
   password      String
   transactions  Transaction[]
+  categories    Category[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -49,13 +50,15 @@ model Category {
   id   Int    @id @default(autoincrement())
   name String @unique
   transactions Transaction[]
+  user        User      @relation(fields: [userId], references: [id])
+  userId      Int
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
 }
 
 enum EnumTransactionType {
-  INCOME
-  EXPENSE
+  Income
+  Expense
 }
