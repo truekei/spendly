@@ -28,22 +28,41 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-      {user ? (
-        <>
-          <h1 className="text-2xl font-bold">Welcome, {user.name} 👋</h1>
-          <Button
-            onClick={async () => {
-              await axios.post("http://localhost:5000/api/auth/logout", {}, { withCredentials: true });
-              setUser(null);
-            }}
-          >
-            Logout
-          </Button>
-        </>
-      ) : (
-        <Button onClick={() => (window.location.href = "/login")}>Login</Button>
-      )}
+    <div className="justify-center p-4">
+      <div className="flex justify-between">
+        <div></div>
+
+        {/* Welcome Message */}
+        <div>
+          {user ? (
+            <h1 className="text-2xl font-bold">Welcome, {user.name} 👋</h1>
+          ) : (
+            <h1 className="text-2xl font-bold">Welcome, Guest 👋</h1>
+          )}
+        </div>
+
+        {/* Login/Logout Button */}
+        <div>
+          {user ? (
+            <Button
+                onClick={async () => {
+                  await axios.post("http://localhost:5000/api/auth/logout", {}, { withCredentials: true });
+                  setUser(null);
+                }}
+              >
+                Logout
+              </Button>
+          ) : (
+            <Button onClick={() => (window.location.href = "/login")}>Login</Button>
+          )}
+        </div>
+      </div>
+        {user && (
+          <>
+            <Button onClick={() => (window.location.href = "/transaction")}>Add Spending</Button>
+            <Button onClick={() => (window.location.href = "/transaction")}>Add Income</Button>
+          </>
+        )}
     </div>
   );
 }
