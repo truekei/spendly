@@ -59,9 +59,15 @@ const SpendingFormSchema = z.object({
   date: z.date("Date is required"),
 })
 
+const CategoryFormSchema = z.object({
+  type: z.string(),
+  name: z.string().min(1, "Category name is required").max(50, "Category name is too long"),
+})
+
 export default function TransactionPage() {
   const [data, setData] = useState<Transaction[]>([])
   const [open, setOpen] = useState(false)
+  const [openCategoryPopover, setOpenCategoryPopover] = useState(false)
 
   useEffect(() => {
     getData().then(setData)
@@ -78,10 +84,24 @@ export default function TransactionPage() {
     },
   });
 
+  const categoryForm = useForm<z.infer<typeof CategoryFormSchema>>({
+    resolver: zodResolver(CategoryFormSchema),
+    defaultValues: {
+      name: "",
+      type: "",
+    },
+  });
+
   async function onSubmit(data: z.infer<typeof SpendingFormSchema>) {
     console.log(data)
     setOpen(false)
     spendingForm.reset()
+  }
+
+  async function onCategorySubmit(data: z.infer<typeof CategoryFormSchema>) {
+    console.log(data)
+    setOpenCategoryPopover(false)
+    categoryForm.reset()
   }
 
   return (
@@ -97,6 +117,10 @@ export default function TransactionPage() {
             category: "",
             date: new Date(),
           })
+          categoryForm.reset({
+            name: "",
+            type: "Expense",
+          })
         }}
       >
         <PlusIcon /> Add Spending
@@ -111,6 +135,10 @@ export default function TransactionPage() {
             description: "",
             category: "",
             date: new Date(),
+          })
+          categoryForm.reset({
+            name: "",
+            type: "Income",
           })
         }}
       >
@@ -158,22 +186,67 @@ export default function TransactionPage() {
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Category</FormLabel>
-                    <FormControl>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        value={field.value}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="food">Food</SelectItem>
-                          <SelectItem value="transport">Transport</SelectItem>
-                          <SelectItem value="entertainment">Entertainment</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
+                    <div className="flex items-center gap-2">
+                      <FormControl>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          value={field.value}
+                        >
+                          <SelectTrigger className="w-[200px]">
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="food">Food</SelectItem>
+                            <SelectItem value="transport">Transport</SelectItem>
+                            <SelectItem value="entertainment">Entertainment</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+
+                      {/* Add Category Button */}
+                      <Popover open={openCategoryPopover} onOpenChange={setOpenCategoryPopover}>
+                        <PopoverTrigger asChild>
+                          <Button type="button" variant="outline" size="sm">
+                            <PlusIcon />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Form {...categoryForm}>
+                            <div className="p-4 space-y-4">
+                              {/* Type */}
+                              <FormField
+                                control={categoryForm.control}
+                                name="type"
+                                render={({ field }) => <Input {...field} type="hidden" />}
+                              />
+                              {/* Name */}
+                              <FormField
+                                control={categoryForm.control}
+                                name="name"
+                                render={({ field }) => (
+                                  <FormItem className="flex flex-col">
+                                    <FormLabel>Category Name</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="Enter category name" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <Button
+                                type="button"
+                                className="w-full"
+                                onClick={() => categoryForm.handleSubmit(onCategorySubmit)()}
+                              >
+                                Add
+                              </Button>
+                            </div>
+                          </Form>
+                        </PopoverContent>
+                      </Popover>
+
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
