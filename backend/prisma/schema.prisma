@@ -18,6 +18,7 @@ model User {
   name          String
   email         String @unique
   password      String
+  
   transactions  Transaction[]
   categories    Category[]
 
@@ -29,7 +30,7 @@ model User {
 model Transaction {
   id          Int      @id @default(autoincrement())
   amount      Float
-  type        EnumTransactionType
+  type        String
   description String?
   date        DateTime @default(now())
 
@@ -49,16 +50,14 @@ model Transaction {
 model Category {
   id   Int    @id @default(autoincrement())
   name String @unique
+  type String
+
   transactions Transaction[]
+
   user        User      @relation(fields: [userId], references: [id])
   userId      Int
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
-}
-
-enum EnumTransactionType {
-  Income
-  Expense
 }
