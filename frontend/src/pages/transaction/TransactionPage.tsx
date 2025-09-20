@@ -74,6 +74,7 @@ const CategoryFormSchema = z.object({
 export default function TransactionPage() {
   const [data, setData] = useState<Transaction[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [dialogHeader, setDialogHeader] = useState("Spending")
   const [open, setOpen] = useState(false)
   const [openCategoryPopover, setOpenCategoryPopover] = useState(false)
 
@@ -148,6 +149,7 @@ export default function TransactionPage() {
       <DataTable columns={columns} data={data} />
       <Button
         onClick={() => {
+          setDialogHeader("Spending")
           setOpen(true)
           spendingForm.reset({
             amount: 0,
@@ -167,6 +169,7 @@ export default function TransactionPage() {
 
       <Button
         onClick={() => {
+          setDialogHeader("Income")
           setOpen(true)
           spendingForm.reset({
             amount: 0,
@@ -189,9 +192,9 @@ export default function TransactionPage() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Add spending</DialogTitle>
+            <DialogTitle>Add {dialogHeader}</DialogTitle>
             <DialogDescription>
-              Add a new spending to your account.
+              Add a new {dialogHeader.toLowerCase()} to your account.
             </DialogDescription>
           </DialogHeader>
           <Form {...spendingForm}>
