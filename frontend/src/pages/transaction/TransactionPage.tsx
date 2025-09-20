@@ -52,6 +52,18 @@ function getData(): Promise<Transaction[]> {
   ])
 }
 
+interface Category {
+  id: number
+  name: string
+  type: string
+}
+
+function getCategories() {
+  return axios.get("http://localhost:5000/api/transaction/categories", { withCredentials: true }).then((res) => {
+    return res.data
+  })
+}
+
 const SpendingFormSchema = z.object({
   type: z.string(),
   amount: z.coerce.number<number>().min(0, "Amount must be positive"),
@@ -67,11 +79,18 @@ const CategoryFormSchema = z.object({
 
 export default function TransactionPage() {
   const [data, setData] = useState<Transaction[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [open, setOpen] = useState(false)
   const [openCategoryPopover, setOpenCategoryPopover] = useState(false)
 
+  // Fetch transactions
   useEffect(() => {
     getData().then(setData)
+  }, [])
+
+  // Fetch categories (by user)
+  useEffect(() => {
+    getCategories().then(setCategories)
   }, [])
 
   const spendingForm = useForm<z.infer<typeof SpendingFormSchema>>({
@@ -95,6 +114,18 @@ export default function TransactionPage() {
 
   async function onSubmit(data: z.infer<typeof SpendingFormSchema>) {
     console.log(data)
+    try {
+      await axios.post(
+        "http://localhost:5000/api/transaction/create",
+        data,
+        { withCredentials: true }
+      );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error(err.response?.data || err.message);
+      alert("Transaction creation failed.");
+      return;
+    }
     setOpen(false)
     spendingForm.reset()
   }
@@ -208,11 +239,23 @@ export default function TransactionPage() {
                           <SelectTrigger className="w-[200px]">
                             <SelectValue placeholder="Select category" />
                           </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="food">Food</SelectItem>
-                            <SelectItem value="transport">Transport</SelectItem>
-                            <SelectItem value="entertainment">Entertainment</SelectItem>
-                          </SelectContent>
+                          {  spendingForm.getValues("type") === "Income" ?
+                            <SelectContent>
+                              {categories.filter(cat => cat.type === "Income").map((category) => (
+                                <SelectItem key={category.id} value={String(category.id)}>
+                                  {category.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                            :
+                            <SelectContent>
+                              {categories.filter(cat => cat.type === "Expense").map((category) => (
+                                <SelectItem key={category.id} value={String(category.id)}>
+                                  {category.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          }
                         </Select>
                       </FormControl>
 
