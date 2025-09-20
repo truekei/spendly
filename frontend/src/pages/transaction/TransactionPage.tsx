@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import axios from "axios"
 import { type Transaction, columns } from "./columns"
 import { DataTable } from "./data-table"
 import * as z from "zod"
@@ -99,7 +100,18 @@ export default function TransactionPage() {
   }
 
   async function onCategorySubmit(data: z.infer<typeof CategoryFormSchema>) {
-    console.log(data)
+    try {
+      await axios.post(
+        "http://localhost:5000/api/transaction/create-category",
+        data,
+        { withCredentials: true }
+      );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error(err.response?.data || err.message);
+      alert("Category creation failed.");
+      return;
+    }
     setOpenCategoryPopover(false)
     categoryForm.reset()
   }
