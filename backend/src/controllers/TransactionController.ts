@@ -5,9 +5,23 @@ import prisma from "../prisma/client";
 export const getAll = async (req: Request, res: Response) => {
   const userId = (req as any).user.id;
   const transactions = await prisma.transaction.findMany({
+    select: {
+      id: true,
+      amount: true,
+      type: true,
+      description: true,
+      date: true,
+      category: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
     where: {
       userId: Number(userId),
     },
+    orderBy: { date: "desc" },
   });
   res.status(200).json(transactions);
 };
