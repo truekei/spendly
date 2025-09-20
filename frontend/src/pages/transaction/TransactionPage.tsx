@@ -41,15 +41,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { CalendarIcon, PlusIcon } from "lucide-react"
 
 function getData(): Promise<Transaction[]> {
-  return Promise.resolve([
-    {
-      amount: 12000,
-      type: "Income",
-      description: "Salary",
-      category: "Job",
-      date: "2023-01-01",
-    },
-  ])
+  return axios.get("http://localhost:5000/api/transaction/", { withCredentials: true }).then((res) => {
+    return res.data
+  })
 }
 
 interface Category {
@@ -120,6 +114,7 @@ export default function TransactionPage() {
         data,
         { withCredentials: true }
       );
+      getData().then(setData);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err.response?.data || err.message);
@@ -137,6 +132,7 @@ export default function TransactionPage() {
         data,
         { withCredentials: true }
       );
+      getCategories().then(setCategories)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err.response?.data || err.message);
