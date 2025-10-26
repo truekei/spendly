@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import Layout from "@/components/layout";
 import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
@@ -13,7 +14,7 @@ export default function HomePage() {
           withCredentials: true,
         });
         setUser(res.data.user);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (err) {
         setUser(null);
       } finally {
@@ -28,23 +29,24 @@ export default function HomePage() {
   }
 
   return (
-    <div className="justify-center p-4">
-      <div className="flex justify-between">
-        <div></div>
+    <Layout>
+      <div className="p-4">
+        <div className="flex justify-between">
+          <div></div>
 
-        {/* Welcome Message */}
-        <div>
-          {user ? (
-            <h1 className="text-2xl font-bold">Welcome, {user.name} 👋</h1>
-          ) : (
-            <h1 className="text-2xl font-bold">Welcome, Guest 👋</h1>
-          )}
-        </div>
+          {/* Welcome Message */}
+          <div>
+            {user ? (
+              <h1 className="text-2xl font-bold">Welcome, {user.name} 👋</h1>
+            ) : (
+              <h1 className="text-2xl font-bold">Welcome, Guest 👋</h1>
+            )}
+          </div>
 
-        {/* Login/Logout Button */}
-        <div>
-          {user ? (
-            <Button
+          {/* Login/Logout Button */}
+          <div>
+            {user ? (
+              <Button
                 onClick={async () => {
                   await axios.post("http://localhost:5000/api/auth/logout", {}, { withCredentials: true });
                   setUser(null);
@@ -52,17 +54,18 @@ export default function HomePage() {
               >
                 Logout
               </Button>
-          ) : (
-            <Button onClick={() => (window.location.href = "/login")}>Login</Button>
-          )}
+            ) : (
+              <Button onClick={() => (window.location.href = "/login")}>Login</Button>
+            )}
+          </div>
         </div>
-      </div>
         {user && (
           <>
             <Button onClick={() => (window.location.href = "/transaction")}>Add Spending</Button>
             <Button onClick={() => (window.location.href = "/transaction")}>Add Income</Button>
           </>
         )}
-    </div>
+      </div>
+    </Layout>
   );
 }
