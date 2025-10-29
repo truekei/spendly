@@ -1,70 +1,148 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
 import Layout from "@/components/layout";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowDown, ArrowUp, Download } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function HomePage() {
-  const [user, setUser] = useState<{ id: number; name: string; email: string } | null>(null);
-  const [loading, setLoading] = useState(true);
+  // const currentDate = new Date().toISOString().split("T")[0];
+  const monthOptions = [
+    {
+      value: "0",
+      label: "January",
+    },
+    {
+      value: "1",
+      label: "February",
+    },
+    {
+      value: "2",
+      label: "March",
+    },
+    {
+      value: "3",
+      label: "April",
+    },
+    {
+      value: "4",
+      label: "May",
+    },
+    {
+      value: "5",
+      label: "June",
+    },
+    {
+      value: "6",
+      label: "July",
+    },
+    {
+      value: "7",
+      label: "August",
+    },
+    {
+      value: "8",
+      label: "September",
+    },
+    {
+      value: "9",
+      label: "October",
+    },
+    {
+      value: "10",
+      label: "November",
+    },
+    {
+      value: "11",
+      label: "December",
+    },
+  ];
+
+  const [selectedMonth, setSelectedMonth] = useState(
+    new Date().getMonth().toString()
+  );
 
   useEffect(() => {
-    async function fetchUser() {
-      try {
-        const res = await axios.get("http://localhost:5000/api/user/me", {
-          withCredentials: true,
-        });
-        setUser(res.data.user);
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (err) {
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchUser();
-  }, []);
-
-  if (loading) {
-    return <p className="text-center mt-10">Loading...</p>;
-  }
+    // debug
+    console.log(monthOptions.find((m) => m.value === selectedMonth));
+  }, [selectedMonth]);
 
   return (
     <Layout>
-      <div className="p-4">
-        <div className="flex justify-between">
-          <div></div>
-
-          {/* Welcome Message */}
-          <div>
-            {user ? (
-              <h1 className="text-2xl font-bold">Welcome, {user.name} 👋</h1>
-            ) : (
-              <h1 className="text-2xl font-bold">Welcome, Guest 👋</h1>
-            )}
-          </div>
-
-          {/* Login/Logout Button */}
-          <div>
-            {user ? (
-              <Button
-                onClick={async () => {
-                  await axios.post("http://localhost:5000/api/auth/logout", {}, { withCredentials: true });
-                  setUser(null);
-                }}
-              >
-                Logout
-              </Button>
-            ) : (
-              <Button onClick={() => (window.location.href = "/login")}>Login</Button>
-            )}
+      <div className="relative z-0 px-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Overview</h1>
+          <div className="flex space-x-4">
+            <Select
+              onValueChange={(value) => {
+                setSelectedMonth(value);
+              }}
+              defaultValue="0"
+            >
+              <SelectTrigger className="w-fit">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Filter by Month</SelectLabel>
+                  {monthOptions.map((month) => (
+                    <SelectItem key={month.value} value={month.value}>
+                      {month.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <Button className="w-fit">
+              <Download />
+              Export
+            </Button>
           </div>
         </div>
-        {user && (
-          <>
-            <Button onClick={() => (window.location.href = "/transaction")}>Add Spending</Button>
-            <Button onClick={() => (window.location.href = "/transaction")}>Add Income</Button>
-          </>
-        )}
+        <div className="grid lg:grid-cols-2 sm:grid-cols-1 gap-4">
+          <Card>
+            <CardHeader>
+              <CardDescription className="text-md text-black">
+                Income This Month{" "}
+                <Badge>
+                  <ArrowUp />
+                  5%
+                </Badge>
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-4xl font-bold">IDR 4.550.000,00</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardDescription className="text-md text-black">
+                Spending This Month{" "}
+                <Badge>
+                  <ArrowDown />
+                  5%
+                </Badge>
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-4xl font-bold">IDR 983.500,00</p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </Layout>
   );

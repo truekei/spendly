@@ -85,7 +85,7 @@ export function AppSidebar(user: User) {
   const { isMobile } = useSidebar();
   const navigate = useNavigate();
   return (
-    <Sidebar>
+    <Sidebar className="shadow-sm">
       <SidebarHeader>
         <img src={SpendlyLogo} className="logo w-40" alt="Spendly" />
       </SidebarHeader>
