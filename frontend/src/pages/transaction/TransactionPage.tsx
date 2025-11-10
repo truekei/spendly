@@ -34,7 +34,7 @@ import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { format } from "date-fns";
-import { CalendarIcon, Plus, PlusIcon } from "lucide-react";
+import { CalendarIcon, Plus, PlusIcon, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -177,32 +177,40 @@ export default function TransactionPage() {
           </div>
         </div>
         <div className="space-y-2">
-          <div className="flex justify-start w-full border-b">
-            <Button
-              variant={"ghost"}
-              onClick={() => {
-                setSelectedYear("");
-              }}
-              className={`rounded-none ${
-                selectedYear === "" && "text-primary border-b border-primary"
-              }`}
-            >
-              All Year
-            </Button>
-            {yearSelections.map((year) => (
+          <div className="flex justify-between w-full border-b">
+            <div>
               <Button
                 variant={"ghost"}
                 onClick={() => {
-                  setSelectedYear(year);
+                  setSelectedYear("");
                 }}
-                className={`rounded-none ${
-                  selectedYear === year &&
-                  "text-primary border-b border-primary"
+                className={`rounded-none hover:text-primary ${
+                  selectedYear === "" && "text-primary border-b border-primary"
                 }`}
               >
-                {year}
+                All Year
               </Button>
-            ))}
+              {yearSelections.map((year) => (
+                <Button
+                  variant={"ghost"}
+                  onClick={() => {
+                    setSelectedYear(year);
+                  }}
+                  className={`rounded-none hover:text-primary ${
+                    selectedYear === year &&
+                    "text-primary border-b border-primary"
+                  }`}
+                >
+                  {year}
+                </Button>
+              ))}
+            </div>
+            <div className="flex w-full max-w-sm items-center gap-2 justify-end">
+              <Input type="text" placeholder="Find transactions..." className="border-transparent shadow-none focus-visible:border-transparent focus-visible:ring-0" />
+              <Button variant={"ghost"}>
+                <Search />
+              </Button>
+            </div>
           </div>
           <DataTable columns={columns} data={data} />
           {/* <Button

@@ -61,7 +61,7 @@ export function DataTable<TData, TValue>({
                 {row.getVisibleCells().map((cell, index) => (
                   <TableCell
                     key={cell.id}
-                    className={`border-t border-b ${
+                    className={`border-t border-b py-3 ${
                       index === 0
                         ? "border-l"
                         : index === row.getVisibleCells().length - 1
