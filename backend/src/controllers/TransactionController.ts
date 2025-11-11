@@ -4,6 +4,28 @@ import prisma from "../prisma/client";
 // GET TRANSACTIONS
 export const getAll = async (req: Request, res: Response) => {
   const userId = (req as any).user.id;
+
+  // Handle filter by year
+  const year = Number(req.query.year || new Date().getFullYear());
+
+  const startOfYear = new Date(year, 0, 1);
+  const endOfYear = new Date(year + 1, 0, 1);
+
+  // Set filter condition
+  const where: any = {
+    userId: Number(userId),
+    date: { gte: startOfYear, lt: endOfYear },
+  };
+
+  // Handle search query
+  const search = (req.query.search as string)?.trim() || "";
+  if (search !== "") {
+    where.OR = [
+      { description: { contains: search, mode: "insensitive" } },
+      { category: { name: { contains: search, mode: "insensitive" } } },
+    ];
+  }
+
   const transactions = await prisma.transaction.findMany({
     select: {
       id: true,
@@ -18,9 +40,7 @@ export const getAll = async (req: Request, res: Response) => {
         },
       },
     },
-    where: {
-      userId: Number(userId),
-    },
+    where,
     orderBy: { date: "desc" },
   });
   res.status(200).json(transactions);
