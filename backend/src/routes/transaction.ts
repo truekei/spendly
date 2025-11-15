@@ -4,10 +4,9 @@ import { getAll, create, createCategory, getCategories } from "../controllers/Tr
 
 const router = Router();
 
-
 router.get("/", authMiddleware, getAll);
-router.post("/create", authMiddleware, create);
-router.get("/categories", authMiddleware, getCategories);
-router.post("/create-category", authMiddleware, createCategory);
+router.post("/", authMiddleware, create);
+router.get("/category", authMiddleware, getCategories);
+router.post("/category", authMiddleware, createCategory);
 
 export default router;
