@@ -11,7 +11,8 @@ export const register = async (req: Request, res: Response) => {
     const { name, email, password } = req.body;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) return res.status(400).json({ message: "Email already in use" });
+    if (existingUser)
+      return res.status(400).json({ message: "Email already in use" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -19,7 +20,76 @@ export const register = async (req: Request, res: Response) => {
       data: { name, email, password: hashedPassword },
     });
 
-    res.status(201).json({ message: "User registered", user: { id: user.id, email: user.email } });
+    // Create premade categories
+    await prisma.category.createMany({
+      data: [
+        {
+          name: "Food",
+          type: "Expense",
+          userId: Number(user.id),
+        },
+        {
+          name: "Groceries",
+          type: "Expense",
+          userId: Number(user.id),
+        },
+        {
+          name: "Investing",
+          type: "Expense",
+          userId: Number(user.id),
+        },
+        {
+          name: "Health",
+          type: "Expense",
+          userId: Number(user.id),
+        },
+        {
+          name: "Hobbies",
+          type: "Expense",
+          userId: Number(user.id),
+        },
+        {
+          name: "Shopping",
+          type: "Expense",
+          userId: Number(user.id),
+        },
+        {
+          name: "Transportation",
+          type: "Expense",
+          userId: Number(user.id),
+        },
+        {
+          name: "Entertainment",
+          type: "Expense",
+          userId: Number(user.id),
+        },
+        {
+          name: "Salary",
+          type: "Income",
+          userId: Number(user.id),
+        },
+        {
+          name: "Bonus",
+          type: "Income",
+          userId: Number(user.id),
+        },
+        {
+          name: "Investment",
+          type: "Income",
+          userId: Number(user.id),
+        },
+        {
+          name: "Reimbursement",
+          type: "Income",
+          userId: Number(user.id),
+        },
+      ],
+    });
+
+    res.status(201).json({
+      message: "User registered",
+      user: { id: user.id, email: user.email },
+    });
   } catch (error) {
     res.status(500).json({ message: "Register failed", error });
   }
@@ -40,7 +110,9 @@ export async function login(req: Request, res: Response) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "12h" });
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
+      expiresIn: "12h",
+    });
 
     // Set cookie httpOnly
     res.cookie("token", token, {
@@ -52,7 +124,9 @@ export async function login(req: Request, res: Response) {
 
     res.json({ message: "Login successful" });
   } catch (err) {
-    res.status(500).json({ message: "Login failed", error: (err as Error).message });
+    res
+      .status(500)
+      .json({ message: "Login failed", error: (err as Error).message });
   }
 }
 
@@ -61,7 +135,6 @@ export async function logout(req: Request, res: Response) {
     httpOnly: true,
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
-
   });
   res.json({ message: "Logout successful" });
 }
