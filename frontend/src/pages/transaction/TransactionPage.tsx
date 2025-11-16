@@ -35,34 +35,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { format } from "date-fns";
 import { CalendarIcon, Plus, PlusIcon, Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { type Transaction, columns } from "./columns";
 import { DataTable } from "./data-table";
-
-function getData(): Promise<Transaction[]> {
-  return axios
-    .get("http://localhost:5000/api/transaction/", { withCredentials: true })
-    .then((res) => {
-      return res.data;
-    });
-}
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCartShopping, faPiggyBank } from "@fortawesome/free-solid-svg-icons";
 
 interface Category {
   id: number;
   name: string;
   type: string;
-}
-
-function getCategories() {
-  return axios
-    .get("http://localhost:5000/api/transaction/categories", {
-      withCredentials: true,
-    })
-    .then((res) => {
-      return res.data;
-    });
 }
 
 const SpendingFormSchema = z.object({
@@ -92,13 +76,17 @@ export default function TransactionPage() {
   const [selectedYear, setSelectedYear] = useState<string>(
     new Date().getFullYear().toString()
   );
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const yearSelections = ["2025", "2024", "2023"];
 
   // Fetch transactions
   useEffect(() => {
     getData().then(setData);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedYear, searchQuery]);
 
   // Fetch categories (by user)
   useEffect(() => {
@@ -124,10 +112,31 @@ export default function TransactionPage() {
     },
   });
 
+  function getData(): Promise<Transaction[]> {
+    const url = `${
+      import.meta.env.VITE_API_URL
+    }/transaction?year=${selectedYear}&search=${searchQuery}`;
+    return axios.get(url, { withCredentials: true }).then((res) => {
+      return res.data;
+    });
+  }
+
+  function getCategories() {
+    const url = `${import.meta.env.VITE_API_URL}/transaction/category`;
+    return axios
+      .get(url, {
+        withCredentials: true,
+      })
+      .then((res) => {
+        return res.data;
+      });
+  }
+
   async function onSubmit(data: z.infer<typeof SpendingFormSchema>) {
     console.log(data);
+    const url = `${import.meta.env.VITE_API_URL}/transaction`;
     try {
-      await axios.post("http://localhost:5000/api/transaction/create", data, {
+      await axios.post(url, data, {
         withCredentials: true,
       });
       getData().then(setData);
@@ -142,12 +151,9 @@ export default function TransactionPage() {
   }
 
   async function onCategorySubmit(data: z.infer<typeof CategoryFormSchema>) {
+    const url = `${import.meta.env.VITE_API_URL}/transaction/category`;
     try {
-      await axios.post(
-        "http://localhost:5000/api/transaction/create-category",
-        data,
-        { withCredentials: true }
-      );
+      await axios.post(url, data, { withCredentials: true });
       getCategories().then(setCategories);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
@@ -158,6 +164,14 @@ export default function TransactionPage() {
     setOpenCategoryPopover(false);
     categoryForm.reset();
   }
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    searchTimeoutRef.current = setTimeout(() => {
+      setSearchQuery(value);
+    }, 500);
+  };
 
   return (
     <Layout>
@@ -206,52 +220,16 @@ export default function TransactionPage() {
               ))}
             </div>
             <div className="flex w-full max-w-sm items-center gap-2 justify-end">
-              <Input type="text" placeholder="Find transactions..." className="border-transparent shadow-none focus-visible:border-transparent focus-visible:ring-0" />
-              <Button variant={"ghost"}>
-                <Search />
-              </Button>
+              <Input
+                type="text"
+                placeholder="Find transactions..."
+                onChange={handleSearchChange}
+                className="border-transparent shadow-none focus-visible:border-transparent focus-visible:ring-0"
+              />
+              <Search className="text-muted-foreground" />
             </div>
           </div>
           <DataTable columns={columns} data={data} />
-          {/* <Button
-            onClick={() => {
-              setDialogHeader("Spending");
-              setShowTransactionDialog(true);
-              spendingForm.reset({
-                amount: 0,
-                type: "Expense",
-                description: "",
-                category: "",
-                date: new Date(),
-              });
-              categoryForm.reset({
-                name: "",
-                type: "Expense",
-              });
-            }}
-          >
-            <PlusIcon /> Add Spending
-          </Button>
-
-          <Button
-            onClick={() => {
-              setDialogHeader("Income");
-              setShowTransactionDialog(true);
-              spendingForm.reset({
-                amount: 0,
-                type: "Income",
-                description: "",
-                category: "",
-                date: new Date(),
-              });
-              categoryForm.reset({
-                name: "",
-                type: "Income",
-              });
-            }}
-          >
-            <PlusIcon /> Add Income
-          </Button> */}
         </div>
 
         {/* Choose Transaction Type (Income/Expense) */}
@@ -259,14 +237,62 @@ export default function TransactionPage() {
           open={showTransactionTypeDialog}
           onOpenChange={setShowTransactionTypeDialog}
         >
-          <DialogContent>
+          <DialogContent className="lg:min-w-xl md:min-w-auto">
             <DialogHeader>
-              <DialogTitle>Are you absolutely sure?</DialogTitle>
-              <DialogDescription>
-                This action cannot be undone. This will permanently delete your
-                account and remove your data from our servers.
-              </DialogDescription>
+              <DialogTitle className="text-center text-2xl">
+                Choose Transaction Type
+              </DialogTitle>
             </DialogHeader>
+            <div className="grid grid-cols-2 gap-8 items-right mt-4 mx-4">
+              <div className="space-y-2">
+                <button
+                  className="border-4 border-primary w-full rounded-lg px-2 py-5 cursor-pointer text-primary hover:bg-primary hover:text-background-light transition"
+                  onClick={() => {
+                    setDialogHeader("Spending");
+                    setShowTransactionDialog(true);
+                    setShowTransactionTypeDialog(false);
+                    spendingForm.reset({
+                      amount: 0,
+                      type: "Expense",
+                      description: "",
+                      category: "",
+                      date: new Date(),
+                    });
+                    categoryForm.reset({
+                      name: "",
+                      type: "Expense",
+                    });
+                  }}
+                >
+                  <FontAwesomeIcon icon={faCartShopping} size={"9x"} />
+                </button>
+                <p className="text-center text-2xl uppercase">Spending</p>
+              </div>
+              <div className="space-y-2">
+                <button
+                  className="border-4 border-primary w-full rounded-lg px-2 py-5 cursor-pointer text-primary hover:bg-primary hover:text-background-light transition"
+                  onClick={() => {
+                    setDialogHeader("Income");
+                    setShowTransactionDialog(true);
+                    setShowTransactionTypeDialog(false);
+                    spendingForm.reset({
+                      amount: 0,
+                      type: "Income",
+                      description: "",
+                      category: "",
+                      date: new Date(),
+                    });
+                    categoryForm.reset({
+                      name: "",
+                      type: "Income",
+                    });
+                  }}
+                >
+                  <FontAwesomeIcon icon={faPiggyBank} size={"9x"} />
+                </button>
+                <p className="text-center text-2xl uppercase">Income</p>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
 
@@ -476,7 +502,7 @@ export default function TransactionPage() {
                   )}
                 />
                 <Button type="submit" className="w-full">
-                  Add Spending
+                  Add {dialogHeader}
                 </Button>
               </form>
             </Form>

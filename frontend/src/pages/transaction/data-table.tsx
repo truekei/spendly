@@ -27,6 +27,11 @@ export function DataTable<TData, TValue>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    initialState: {
+      columnVisibility: {
+        type: false,
+      },
+    },
   });
 
   return (

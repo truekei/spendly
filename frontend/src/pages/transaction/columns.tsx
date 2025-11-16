@@ -68,5 +68,8 @@ export const columns: ColumnDef<Transaction>[] = [
   {
     accessorKey: "description",
     header: "Description",
+    cell: ({ row }) => {
+      return <div>{row.getValue("description") || "—"}</div>;
+    },
   },
 ];
