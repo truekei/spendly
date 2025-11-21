@@ -18,6 +18,7 @@ model User {
   name          String
   email         String @unique
   password      String
+  balance       BigInt @default(0)
   
   transactions  Transaction[]
   categories    Category[]

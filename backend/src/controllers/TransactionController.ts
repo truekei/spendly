@@ -52,6 +52,25 @@ export const create = async (req: Request, res: Response) => {
     const userId = (req as any).user.id;
     const { type, amount, description, category, date } = req.body;
 
+    const user = await prisma.user.findUniqueOrThrow({
+      select: { balance: true },
+      where: { id: userId },
+    });
+
+    const updatedBalance =
+      type === "Income"
+        ? user.balance + BigInt(amount)
+        : user.balance - BigInt(amount);
+
+    await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        balance: updatedBalance,
+      },
+    });
+
     const transaction = await prisma.transaction.create({
       data: {
         amount: Number(amount),
@@ -72,8 +91,9 @@ export const create = async (req: Request, res: Response) => {
     });
 
     res.status(201).json({ message: "Transaction created", transaction });
-  } catch (error) {
-    res.status(500).json({ message: "Transaction creation failed", error });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Transaction creation failed" });
   }
 };
 
