@@ -32,7 +32,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { User } from "@/types/User";
+import { useUser } from "@/contexts/UserContext";
+import { formatCurrency } from "@/lib/utils";
 import { faUser, faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import axios from "axios";
@@ -79,11 +80,14 @@ const items = [
     icon: Settings,
   },
 ];
-const balance = "512.200.000,00";
 
-export function AppSidebar(user: User) {
+export function AppSidebar() {
   const { isMobile } = useSidebar();
   const navigate = useNavigate();
+  const { user } = useUser();
+
+  if (!user) return null;
+
   return (
     <Sidebar className="shadow-sm">
       <SidebarHeader>
@@ -109,10 +113,16 @@ export function AppSidebar(user: User) {
           <p>Balance:</p>
           <Tooltip delayDuration={500}>
             <TooltipTrigger asChild>
-              <h3 className="text-xl font-bold truncate">IDR {balance}</h3>
+              <h3 className="text-xl font-bold truncate">
+                {formatCurrency(BigInt(user.balance), "id-ID", "IDR")}
+              </h3>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{balance}</p>
+              <p>{`Rp. ${formatCurrency(
+                BigInt(user.balance),
+                "id-ID",
+                "IDR"
+              )}`}</p>
             </TooltipContent>
           </Tooltip>
         </SidebarGroup>
