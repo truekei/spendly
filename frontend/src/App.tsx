@@ -1,7 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import "./App.css";
 import Layout from "./components/layout";
-import HomePage from "./pages/HomePage";
+import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import TransactionPage from "./pages/transaction/TransactionPage";
@@ -15,7 +15,7 @@ function App() {
 
         {/* Protected routes */}
         <Route element={<Layout />}>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<DashboardPage />} />
           <Route path="/transaction" element={<TransactionPage />} />
         </Route>
       </Routes>
