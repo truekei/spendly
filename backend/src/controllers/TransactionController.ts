@@ -3,47 +3,56 @@ import prisma from "../prisma/client";
 
 // GET TRANSACTIONS
 export const getAll = async (req: Request, res: Response) => {
-  const userId = (req as any).user.id;
+  try {
+    const userId = (req as any).user.id;
 
-  // Handle filter by year
-  const year = Number(req.query.year || new Date().getFullYear());
+    // Handle filter by year
+    const year = Number(req.query.year || new Date().getFullYear());
 
-  const startOfYear = new Date(year, 0, 1);
-  const endOfYear = new Date(year + 1, 0, 1);
+    const startOfYear = new Date(year, 0, 1);
+    const endOfYear = new Date(year + 1, 0, 1);
 
-  // Set filter condition
-  const where: any = {
-    userId: Number(userId),
-    date: { gte: startOfYear, lt: endOfYear },
-  };
+    // Set filter condition
+    const where: any = {
+      userId: Number(userId),
+      date: { gte: startOfYear, lt: endOfYear },
+    };
 
-  // Handle search query
-  const search = (req.query.search as string)?.trim() || "";
-  if (search !== "") {
-    where.OR = [
-      { description: { contains: search, mode: "insensitive" } },
-      { category: { name: { contains: search, mode: "insensitive" } } },
-    ];
-  }
+    // Handle search query
+    const search = (req.query.search as string)?.trim() || "";
+    if (search !== "") {
+      where.OR = [
+        { description: { contains: search, mode: "insensitive" } },
+        { category: { name: { contains: search, mode: "insensitive" } } },
+      ];
+    }
 
-  const transactions = await prisma.transaction.findMany({
-    select: {
-      id: true,
-      amount: true,
-      type: true,
-      description: true,
-      date: true,
-      category: {
-        select: {
-          id: true,
-          name: true,
+    const transactions = await prisma.transaction.findMany({
+      select: {
+        id: true,
+        amount: true,
+        type: true,
+        description: true,
+        date: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
         },
       },
-    },
-    where,
-    orderBy: { date: "desc" },
-  });
-  res.status(200).json(transactions);
+      where,
+      orderBy: { date: "desc" },
+    });
+
+    const yearList = transactions.map((tx) => tx.date.getFullYear());
+    const uniqueYears = Array.from(new Set(yearList)).sort((a, b) => b - a);
+
+    res.status(200).json({ transactions, uniqueYears });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to retrieve transactions" });
+  }
 };
 
 // CREATE TRANSACTION
