@@ -49,7 +49,7 @@ interface Category {
   type: string;
 }
 
-const SpendingFormSchema = z.object({
+const TransactionFormSchema = z.object({
   type: z.string(),
   amount: z.coerce.number<number>().min(0, "Amount must be positive"),
   description: z.string().max(1000).optional(),
@@ -68,6 +68,7 @@ const CategoryFormSchema = z.object({
 export default function TransactionPage() {
   const [data, setData] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [yearSelections, setYearSelections] = useState<string[]>([]);
   const [dialogHeader, setDialogHeader] = useState("Spending");
   const [showTransactionTypeDialog, setShowTransactionTypeDialog] =
     useState(false);
@@ -80,12 +81,11 @@ export default function TransactionPage() {
 
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const yearSelections = ["2025", "2024", "2023"];
   const { refetchUser } = useUser();
 
   // Fetch transactions
   useEffect(() => {
-    getData().then(setData);
+    fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedYear, searchQuery]);
 
@@ -94,8 +94,8 @@ export default function TransactionPage() {
     getCategories().then(setCategories);
   }, []);
 
-  const spendingForm = useForm<z.infer<typeof SpendingFormSchema>>({
-    resolver: zodResolver(SpendingFormSchema),
+  const transactionForm = useForm<z.infer<typeof TransactionFormSchema>>({
+    resolver: zodResolver(TransactionFormSchema),
     defaultValues: {
       amount: 0,
       type: "",
@@ -113,14 +113,27 @@ export default function TransactionPage() {
     },
   });
 
-  function getData(): Promise<Transaction[]> {
-    const url = `${
-      import.meta.env.VITE_API_URL
-    }/transaction?year=${selectedYear}&search=${searchQuery}`;
-    return axios.get(url, { withCredentials: true }).then((res) => {
-      return res.data;
-    });
-  }
+  const fetchData = async () => {
+    try {
+      const url = `${import.meta.env.VITE_API_URL}/transaction`;
+      const params: Record<string, string> = {};
+      if (selectedYear) params.year = selectedYear;
+      if (searchQuery) params.search = searchQuery;
+      const res = await axios.get(url, {
+        params,
+        withCredentials: true,
+      });
+      if (res.status === 200) {
+        setData(res.data.transactions);
+        setYearSelections(
+          res.data.uniqueYears.map((year: number) => year.toString())
+        );
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to fetch transactions.");
+    }
+  };
 
   function getCategories() {
     const url = `${import.meta.env.VITE_API_URL}/transaction/category`;
@@ -133,7 +146,7 @@ export default function TransactionPage() {
       });
   }
 
-  async function onSubmit(data: z.infer<typeof SpendingFormSchema>) {
+  async function onSubmit(data: z.infer<typeof TransactionFormSchema>) {
     console.log(data);
     const url = `${import.meta.env.VITE_API_URL}/transaction`;
     try {
@@ -142,7 +155,7 @@ export default function TransactionPage() {
       });
       console.log(res);
       if (res.status === 201) {
-        getData().then(setData);
+        await fetchData();
         refetchUser();
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -152,7 +165,7 @@ export default function TransactionPage() {
       return;
     }
     setShowTransactionDialog(false);
-    spendingForm.reset();
+    transactionForm.reset();
   }
 
   async function onCategorySubmit(data: z.infer<typeof CategoryFormSchema>) {
@@ -255,7 +268,7 @@ export default function TransactionPage() {
                   setDialogHeader("Spending");
                   setShowTransactionDialog(true);
                   setShowTransactionTypeDialog(false);
-                  spendingForm.reset({
+                  transactionForm.reset({
                     amount: 0,
                     type: "Expense",
                     description: "",
@@ -279,7 +292,7 @@ export default function TransactionPage() {
                   setDialogHeader("Income");
                   setShowTransactionDialog(true);
                   setShowTransactionTypeDialog(false);
-                  spendingForm.reset({
+                  transactionForm.reset({
                     amount: 0,
                     type: "Income",
                     description: "",
@@ -312,20 +325,20 @@ export default function TransactionPage() {
               Add a new {dialogHeader.toLowerCase()} to your account.
             </DialogDescription>
           </DialogHeader>
-          <Form {...spendingForm}>
+          <Form {...transactionForm}>
             <form
-              onSubmit={spendingForm.handleSubmit(onSubmit)}
+              onSubmit={transactionForm.handleSubmit(onSubmit)}
               className="space-y-8"
             >
               {/* Type */}
               <FormField
-                control={spendingForm.control}
+                control={transactionForm.control}
                 name="type"
                 render={({ field }) => <Input {...field} type="hidden" />}
               />
               {/* Amount */}
               <FormField
-                control={spendingForm.control}
+                control={transactionForm.control}
                 name="amount"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
@@ -343,7 +356,7 @@ export default function TransactionPage() {
               />
               {/* Category */}
               <FormField
-                control={spendingForm.control}
+                control={transactionForm.control}
                 name="category"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
@@ -358,7 +371,7 @@ export default function TransactionPage() {
                           <SelectTrigger className="w-[200px]">
                             <SelectValue placeholder="Select category" />
                           </SelectTrigger>
-                          {spendingForm.getValues("type") === "Income" ? (
+                          {transactionForm.getValues("type") === "Income" ? (
                             <SelectContent>
                               {categories
                                 .filter((cat) => cat.type === "Income")
@@ -446,7 +459,7 @@ export default function TransactionPage() {
               />
               {/* Description */}
               <FormField
-                control={spendingForm.control}
+                control={transactionForm.control}
                 name="description"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
@@ -463,7 +476,7 @@ export default function TransactionPage() {
               />
               {/* Date */}
               <FormField
-                control={spendingForm.control}
+                control={transactionForm.control}
                 name="date"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
