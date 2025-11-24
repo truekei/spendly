@@ -44,10 +44,16 @@ export default function Layout() {
   useEffect(() => {
     const root = document.documentElement;
 
+    root.classList.add("no-theme-transition");
+
     if (theme === "dark") root.classList.add("dark");
     else root.classList.remove("dark");
 
     setCookie("theme", theme);
+
+    setTimeout(() => {
+      root.classList.remove("no-theme-transition");
+    }, 50);
   }, [theme]);
 
   if (loading) return <p>Loading...</p>;
