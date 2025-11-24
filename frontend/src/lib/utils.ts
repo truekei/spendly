@@ -25,3 +25,18 @@ export function formatDate(date: Date, locale: string) {
   };
   return new Intl.DateTimeFormat(locale, options).format(date);
 }
+
+export function getCookie(name: string): string | undefined {
+  return document.cookie
+    .split("; ")
+    .find((row) => row.startsWith(name + "="))
+    ?.split("=")[1];
+}
+
+export function setCookie(
+  name: string,
+  value: string,
+  days: number = 30
+): void {
+  document.cookie = `${name}=${value}; path=/; max-age=${days * 24 * 60 * 60}`;
+}

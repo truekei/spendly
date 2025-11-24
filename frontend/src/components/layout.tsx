@@ -1,7 +1,7 @@
 import { AppSidebar } from "@/components/app-sidebar";
-import { DynamicBreadcrumb } from "@/components/dynamic-sidebar";
+import { DynamicBreadcrumb } from "@/components/dynamic-breadcrumb";
+import { ToggleTheme } from "@/components/toggle-theme";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Switch } from "@/components/ui/switch";
 import { UserContext } from "@/contexts/UserContext";
 import type { User } from "@/types/User";
 import axios from "axios";
@@ -38,13 +38,13 @@ export default function Layout() {
       <SidebarProvider>
         <div className="flex min-h-screen w-full">
           {user && <AppSidebar />}
-          <main className="flex-1 bg-background pt-3 space-y-8 pr-1">
-            <div className="flex justify-between pr-5">
+          <main className="flex-1 bg-background pr-1">
+            <div className="flex justify-between pr-5 py-3 mb-5 items-center sticky top-0 z-100 bg-background">
               <div className="flex flex-row items-center">
                 <SidebarTrigger />
                 <DynamicBreadcrumb />
               </div>
-              <Switch />
+              <ToggleTheme />
             </div>
             <Outlet />
           </main>
