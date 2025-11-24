@@ -7,6 +7,7 @@ import { UserContext } from "@/contexts/UserContext";
 import { getCookie, setCookie } from "@/lib/utils";
 import type { User } from "@/types/User";
 import axios from "axios";
+import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 
@@ -70,10 +71,18 @@ export default function Layout() {
                   <SidebarTrigger />
                   <DynamicBreadcrumb />
                 </div>
-                <Switch
-                  onCheckedChange={toggleTheme}
-                  defaultChecked={theme === "dark"}
-                />
+                <div className="relative">
+                  <Switch
+                    checked={theme === "dark"}
+                    onCheckedChange={toggleTheme}
+                    className="w-14 h-7 data-[state=unchecked]:bg-input data-[state=checked]:bg-input [&>span]:w-6 [&>span]:h-6 data-[state=checked]:[&>span]:translate-x-[28px] data-[state=unchecked]:[&>span]:translate-x-[2px]"
+                  />
+                  {theme === "dark" ? (
+                    <Moon className="pointer-events-none absolute left-[4px] top-1/2 -translate-y-[12px] h-5 w-5 text-foreground" />
+                  ) : (
+                    <Sun className="pointer-events-none absolute right-[4px] top-1/2 -translate-y-[12px] h-5 w-5 text-foreground" />
+                  )}
+                </div>
               </div>
               <Outlet />
             </main>
