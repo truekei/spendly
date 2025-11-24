@@ -241,7 +241,7 @@ export default function TransactionPage() {
               type="text"
               placeholder="Find transactions..."
               onChange={handleSearchChange}
-              className="border-transparent shadow-none focus-visible:border-transparent focus-visible:ring-0"
+              className="border-transparent shadow-none focus-visible:border-transparent focus-visible:ring-0 dark:bg-transparent"
             />
             <Search className="text-muted-foreground" />
           </div>

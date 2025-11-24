@@ -32,6 +32,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useUser } from "@/contexts/UserContext";
 import { formatCurrency } from "@/lib/utils";
 import { faUser, faUserGroup } from "@fortawesome/free-solid-svg-icons";
@@ -50,7 +51,8 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import DefaultAvatar from "/profile.png";
-import SpendlyLogo from "/spendly_blacktext.svg";
+import SpendlyLogoLight from "/spendly_blacktext.svg";
+import SpendlyLogoDark from "/spendly_whitetext.svg";
 
 // Menu items.
 const items = [
@@ -85,18 +87,23 @@ export function AppSidebar() {
   const { isMobile } = useSidebar();
   const navigate = useNavigate();
   const { user } = useUser();
+  const { theme } = useTheme();
 
   if (!user) return null;
 
   return (
     <Sidebar className="shadow-sm">
       <SidebarHeader>
-        <img src={SpendlyLogo} className="logo w-40" alt="Spendly" />
+        <img
+          src={theme === "light" ? SpendlyLogoLight : SpendlyLogoDark}
+          className="logo w-40"
+          alt="Spendly"
+        />
       </SidebarHeader>
       <SidebarContent className="p-3">
         <SidebarGroup>
           <Select defaultValue="personal">
-            <SelectTrigger className="w-full py-5 bg-primary text-white font-medium [&_svg]:!text-white [&_svg]:stroke-[3] [&_svg]:size-6 [&_svg]:opacity-100">
+            <SelectTrigger className="w-full py-5 bg-primary dark:bg-primary dark:hover:bg-primary text-white dark:text-primary-foreground font-medium [&_svg]:!text-white [&_svg]:dark:!text-primary-foreground [&_svg]:stroke-[3] [&_svg]:size-6 [&_svg]:opacity-100">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -118,11 +125,7 @@ export function AppSidebar() {
               </h3>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{`Rp. ${formatCurrency(
-                BigInt(user.balance),
-                "id-ID",
-                "IDR"
-              )}`}</p>
+              <p>{formatCurrency(BigInt(user.balance), "id-ID", "IDR")}</p>
             </TooltipContent>
           </Tooltip>
         </SidebarGroup>

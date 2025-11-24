@@ -114,7 +114,7 @@ export default function DashboardPage() {
       <div className="grid lg:grid-cols-2 sm:grid-cols-1 gap-4">
         <Card>
           <CardHeader>
-            <CardDescription className="text-md text-black">
+            <CardDescription className="text-md text-foreground">
               Income This Month{" "}
               <Badge>
                 <ArrowUp />
@@ -128,7 +128,7 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardDescription className="text-md text-black">
+            <CardDescription className="text-md text-foreground">
               Spending This Month{" "}
               <Badge>
                 <ArrowDown />
