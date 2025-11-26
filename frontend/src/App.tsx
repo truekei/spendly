@@ -3,6 +3,7 @@ import "./App.css";
 import Layout from "./components/layout";
 import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
+import NotFoundPage from "./pages/NotFoundPage";
 import RegisterPage from "./pages/RegisterPage";
 import TransactionPage from "./pages/transaction/TransactionPage";
 
@@ -18,6 +19,9 @@ function App() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/transaction" element={<TransactionPage />} />
         </Route>
+
+        {/* Last route = 404 */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );

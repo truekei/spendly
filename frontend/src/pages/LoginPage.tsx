@@ -1,4 +1,4 @@
-import illustrationImage from "@/assets/login_illustration.png";
+import IllustrationImage from "@/assets/login_illustration.png";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -144,7 +144,7 @@ export default function LoginPage() {
             </p>
           </div>
           <img
-            src={illustrationImage}
+            src={IllustrationImage}
             alt="Illustration"
             className="h-115 rounded-md"
           />
