@@ -75,7 +75,7 @@ export default function TransactionPage() {
   const [showTransactionDialog, setShowTransactionDialog] = useState(false);
   const [openCategoryPopover, setOpenCategoryPopover] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string>(
-    new Date().getFullYear().toString()
+    new Date().getFullYear().toString(),
   );
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -125,9 +125,18 @@ export default function TransactionPage() {
       });
       if (res.status === 200) {
         setData(res.data.transactions);
-        setYearSelections(
-          res.data.uniqueYears.map((year: number) => year.toString())
-        );
+        // setYearSelections(
+        //   res.data.uniqueYears.map((year: number) => year.toString())
+        // );
+        setYearSelections(() => {
+          const years: string[] = res.data.uniqueYears.map((year: number) =>
+            year.toString(),
+          );
+          if (!years.includes(new Date().getFullYear().toString())) {
+            years.unshift(new Date().getFullYear().toString());
+          }
+          return years;
+        });
       }
     } catch (err) {
       console.error(err);
@@ -488,7 +497,7 @@ export default function TransactionPage() {
                             variant={"outline"}
                             className={cn(
                               "w-[240px] pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
                             {field.value ? (

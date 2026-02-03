@@ -45,7 +45,16 @@ export const getAll = async (req: Request, res: Response) => {
       orderBy: { date: "desc" },
     });
 
-    const yearList = transactions.map((tx) => tx.date.getFullYear());
+    const yearList = await prisma.transaction
+      .findMany({
+        select: {
+          date: true,
+        },
+        where: {
+          userId: Number(userId),
+        },
+      })
+      .then((transactions) => transactions.map((tx) => tx.date.getFullYear()));
     const uniqueYears = Array.from(new Set(yearList)).sort((a, b) => b - a);
 
     res.status(200).json({ transactions, uniqueYears });

@@ -47,7 +47,7 @@ export function DataTable<TData, TValue>({
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                   </TableHead>
                 );
@@ -70,8 +70,8 @@ export function DataTable<TData, TValue>({
                       index === 0
                         ? "border-l"
                         : index === row.getVisibleCells().length - 1
-                        ? "border-r"
-                        : ""
+                          ? "border-r"
+                          : ""
                     }`}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -81,7 +81,7 @@ export function DataTable<TData, TValue>({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
+              <TableCell colSpan={columns.length} className="text-center">
                 No results.
               </TableCell>
             </TableRow>
