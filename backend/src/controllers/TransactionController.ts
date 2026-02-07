@@ -93,9 +93,25 @@ export const create = async (req: Request, res: Response) => {
       },
     });
 
+    await prisma.transaction.updateMany({
+      where: {
+        userId: Number(userId),
+        date: {
+          gt: new Date(date),
+        },
+      },
+      data: {
+        balance:
+          type === "Income"
+            ? { increment: BigInt(amount) }
+            : { decrement: BigInt(amount) },
+      },
+    });
+
     const transaction = await prisma.transaction.create({
       data: {
         amount: Number(amount),
+        balance: updatedBalance,
         type: String(type),
         description: String(description),
         date: new Date(date),
@@ -112,7 +128,13 @@ export const create = async (req: Request, res: Response) => {
       },
     });
 
-    res.status(201).json({ message: "Transaction created", transaction });
+    res.status(201).json({
+      message: "Transaction created",
+      transaction: {
+        ...transaction,
+        balance: transaction.balance.toString(),
+      },
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Transaction creation failed" });

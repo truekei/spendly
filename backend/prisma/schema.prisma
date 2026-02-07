@@ -34,6 +34,7 @@ model Transaction {
   type        String
   description String?
   date        DateTime @default(now())
+  balance     BigInt   @default(0)
 
   user        User     @relation(fields: [userId], references: [id])
   userId      Int
