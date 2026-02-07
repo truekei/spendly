@@ -24,6 +24,7 @@ import {
   faWallet,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import axios from "axios";
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -46,6 +47,10 @@ import {
 type DashboardData = {
   totalSpending: number;
   totalIncome: number;
+};
+type BalanceChartData = {
+  day: string;
+  balance: number;
 };
 
 export default function DashboardPage() {
@@ -104,43 +109,68 @@ export default function DashboardPage() {
   const currentMonth = new Date().getMonth().toString();
 
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(
-    null
+    null,
+  );
+  const [balanceChartData, setBalanceChartData] = useState<BalanceChartData[]>(
+    [],
   );
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
 
-  const balanceChartData = [
-    { day: "1", balance: 1860000 },
-    { day: "2", balance: 3050000 },
-    { day: "3", balance: 2370000 },
-    { day: "4", balance: 730000 },
-    { day: "5", balance: 2090000 },
-    { day: "6", balance: 2140000 },
-    { day: "7", balance: 3670000 },
-    { day: "8", balance: 4560000 },
-    { day: "9", balance: 3490000 },
-    { day: "10", balance: 2900000 },
-    { day: "11", balance: 4100000 },
-    { day: "12", balance: 3670000 },
-    { day: "13", balance: 3120000 },
-    { day: "14", balance: 3100000 },
-    { day: "15", balance: 2890000 },
-    { day: "16", balance: 2230000 },
-    { day: "17", balance: 1890000 },
-    { day: "18", balance: 1210000 },
-    { day: "19", balance: 900000 },
-    { day: "20", balance: 500000 },
-    { day: "21", balance: 100000 },
-    { day: "22", balance: 700000 },
-    { day: "23", balance: 1200000 },
-    { day: "24", balance: 1000000 },
-    { day: "25", balance: 1500000 },
-    { day: "26", balance: 2000000 },
-    { day: "27", balance: 2500000 },
-    { day: "28", balance: 3000000 },
-    { day: "29", balance: 3500000 },
-    { day: "30", balance: 4000000 },
-    { day: "31", balance: 4500000 },
-  ];
+  const fetchBalanceFlow = async () => {
+    try {
+      const url = `${import.meta.env.VITE_API_URL}/dashboard/balance-flow`;
+      const params: Record<string, string> = {};
+      params.month = selectedMonth;
+      params.year = "2025"; // hardcoded for now
+      const res = await axios.get(url, {
+        params,
+        withCredentials: true,
+      });
+      if (res.status === 200) {
+        console.log(res.data);
+        setBalanceChartData(res.data.balances);
+      } else {
+        alert("Failed to fetch transactions.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to fetch transactions.");
+    }
+  };
+
+  // const balanceChartData = [
+  //   { day: "1", balance: 1860000 },
+  //   { day: "2", balance: 3050000 },
+  //   { day: "3", balance: 2370000 },
+  //   { day: "4", balance: 730000 },
+  //   { day: "5", balance: 2090000 },
+  //   { day: "6", balance: 2140000 },
+  //   { day: "7", balance: 3670000 },
+  //   { day: "8", balance: 4560000 },
+  //   { day: "9", balance: 3490000 },
+  //   { day: "10", balance: 2900000 },
+  //   { day: "11", balance: 4100000 },
+  //   { day: "12", balance: 3670000 },
+  //   { day: "13", balance: 3120000 },
+  //   { day: "14", balance: 3100000 },
+  //   { day: "15", balance: 2890000 },
+  //   { day: "16", balance: 2230000 },
+  //   { day: "17", balance: 1890000 },
+  //   { day: "18", balance: 1210000 },
+  //   { day: "19", balance: 900000 },
+  //   { day: "20", balance: 500000 },
+  //   { day: "21", balance: 100000 },
+  //   { day: "22", balance: 700000 },
+  //   { day: "23", balance: 1200000 },
+  //   { day: "24", balance: 1000000 },
+  //   { day: "25", balance: 1500000 },
+  //   { day: "26", balance: 2000000 },
+  //   { day: "27", balance: 2500000 },
+  //   { day: "28", balance: 3000000 },
+  //   { day: "29", balance: 3500000 },
+  //   { day: "30", balance: 4000000 },
+  //   { day: "31", balance: 4500000 },
+  // ];
 
   const balanceChartConfig = {
     balance: {
@@ -255,6 +285,7 @@ export default function DashboardPage() {
   useEffect(() => {
     // debug
     console.log(monthOptions.find((m) => m.value === selectedMonth));
+    fetchBalanceFlow();
   }, [selectedMonth]);
 
   useEffect(() => {
@@ -301,78 +332,84 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartContainer
-              config={balanceChartConfig}
-              className="max-h-50 w-full"
-            >
-              <LineChart
-                accessibilityLayer
-                data={balanceChartData}
-                margin={{
-                  left: 0,
-                  right: 0,
-                  top: 0,
-                  bottom: 0,
-                }}
+            {balanceChartData.length === 0 ? (
+              <div className="flex items-center justify-center h-50">
+                <p className="text-muted-foreground">No data available.</p>
+              </div>
+            ) : (
+              <ChartContainer
+                config={balanceChartConfig}
+                className="max-h-50 w-full"
               >
-                <XAxis dataKey="day" minTickGap={15} />
-                <YAxis
-                  tickMargin={10}
-                  width={120}
-                  tickFormatter={(value) =>
-                    `${formatCurrency(value, "id-ID", "IDR")}`
-                  }
-                  tickCount={4}
-                />
-                <ChartTooltip
-                  cursor={false}
-                  content={
-                    <ChartTooltipContent
-                      hideIndicator
-                      labelFormatter={(label) => `Day ${label}`}
-                      formatter={(value, name) => {
-                        return (
-                          <div className="flex">
-                            <span className="mr-2 text-muted-foreground">
-                              {balanceChartConfig[
-                                name as keyof typeof balanceChartConfig
-                              ]?.label ?? name}
-                            </span>
-                            <span className="font-bold">
-                              {formatCurrency(Number(value), "id-ID", "IDR")}
-                            </span>
-                          </div>
-                        );
-                      }}
-                    />
-                  }
-                />
-                <Line
-                  dataKey="balance"
-                  type="natural"
-                  stroke="var(--color-balance)"
-                  dot={false}
-                  strokeWidth={2}
-                  filter="url(#rainbow-line-glow)"
-                />
-                <defs>
-                  <filter
-                    id="rainbow-line-glow"
-                    x="-20%"
-                    y="-20%"
-                    width="140%"
-                    height="140%"
-                  >
-                    <feGaussianBlur stdDeviation="10" result="blur" />
-                    <feComposite
-                      in="SourceGraphic"
-                      in2="blur"
-                      operator="over"
-                    />
-                  </filter>
-                </defs>
-              </LineChart>
-            </ChartContainer>
+                <LineChart
+                  accessibilityLayer
+                  data={balanceChartData}
+                  margin={{
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                  }}
+                >
+                  <XAxis dataKey="day" minTickGap={15} />
+                  <YAxis
+                    tickMargin={10}
+                    width={120}
+                    tickFormatter={(value) =>
+                      `${formatCurrency(value, "id-ID", "IDR")}`
+                    }
+                    tickCount={4}
+                  />
+                  <ChartTooltip
+                    cursor={false}
+                    content={
+                      <ChartTooltipContent
+                        hideIndicator
+                        labelFormatter={(label) => `Day ${label}`}
+                        formatter={(value, name) => {
+                          return (
+                            <div className="flex">
+                              <span className="mr-2 text-muted-foreground">
+                                {balanceChartConfig[
+                                  name as keyof typeof balanceChartConfig
+                                ]?.label ?? name}
+                              </span>
+                              <span className="font-bold">
+                                {formatCurrency(Number(value), "id-ID", "IDR")}
+                              </span>
+                            </div>
+                          );
+                        }}
+                      />
+                    }
+                  />
+                  <Line
+                    dataKey="balance"
+                    type="natural"
+                    stroke="var(--color-balance)"
+                    dot={false}
+                    strokeWidth={2}
+                    filter="url(#rainbow-line-glow)"
+                  />
+                  <defs>
+                    <filter
+                      id="rainbow-line-glow"
+                      x="-20%"
+                      y="-20%"
+                      width="140%"
+                      height="140%"
+                    >
+                      <feGaussianBlur stdDeviation="10" result="blur" />
+                      <feComposite
+                        in="SourceGraphic"
+                        in2="blur"
+                        operator="over"
+                      />
+                    </filter>
+                  </defs>
+                </LineChart>
+              </ChartContainer>
+            )}
           </CardContent>
         </Card>
         <div className="grid xl:grid-cols-1 lg:grid-cols-2 gap-4 xl:col-span-2 lg:col-span-2 md:col-span-1">
@@ -395,7 +432,7 @@ export default function DashboardPage() {
                 {formatCurrency(
                   dashboardData?.totalSpending || 0,
                   "id-ID",
-                  "IDR"
+                  "IDR",
                 )}
               </p>
             </CardContent>
@@ -419,7 +456,7 @@ export default function DashboardPage() {
                 {formatCurrency(
                   dashboardData?.totalIncome || 0,
                   "id-ID",
-                  "IDR"
+                  "IDR",
                 )}
               </p>
             </CardContent>
