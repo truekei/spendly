@@ -7,19 +7,19 @@ export const getBalanceFlow = async (req: Request, res: Response) => {
     const userId = (req as any).user.id;
     const { month, year } = req.query;
 
-    const balances = await prisma.transaction.findMany({
-      select: {
-        date: true,
-        balance: true,
-      },
-      where: {
-        userId,
-        date: {
-          gte: new Date(Number(year as string), Number(month as string) - 1, 1),
-          lt: new Date(Number(year as string), Number(month as string), 1),
-        },
-      },
-    });
+    const startDate = new Date(Number(year), Number(month), 1);
+    const endDate = new Date(Number(year), Number(month) + 1, 1);
+
+    const balances = await prisma.$queryRaw`
+      SELECT EXTRACT(DAY FROM date) AS day, SUM(balance) AS balance
+      FROM "Transaction"
+      WHERE "userId" = ${Number(userId)}
+      AND date >= ${startDate}
+      AND date < ${endDate}
+      GROUP BY day
+      ORDER BY day ASC
+    `;
+
     res.status(200).json({ balances });
   } catch (error) {
     console.error(error);
