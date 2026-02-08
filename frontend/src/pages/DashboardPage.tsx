@@ -29,6 +29,7 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   Download,
+  TrendingDown,
   TrendingUp,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -44,9 +45,15 @@ import {
   YAxis,
 } from "recharts";
 
-type DashboardData = {
-  totalSpending: number;
-  totalIncome: number;
+type SummaryData = {
+  expense: {
+    total: number;
+    percentage: number;
+  };
+  income: {
+    total: number;
+    percentage: number;
+  };
 };
 type BalanceChartData = {
   day: string;
@@ -108,14 +115,33 @@ export default function DashboardPage() {
 
   const currentMonth = new Date().getMonth().toString();
 
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
-    null,
-  );
+  const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
   const [balanceChartData, setBalanceChartData] = useState<BalanceChartData[]>(
     [],
   );
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
 
+  const fetchTotalIncomeExpense = async () => {
+    try {
+      const url = `${import.meta.env.VITE_API_URL}/dashboard/income-expense`;
+      const params: Record<string, string> = {};
+      params.month = selectedMonth;
+      params.year = "2025"; // hardcoded for now
+      const res = await axios.get(url, {
+        params,
+        withCredentials: true,
+      });
+      if (res.status === 200) {
+        console.log(res.data);
+        setSummaryData(res.data);
+      } else {
+        alert("Failed to fetch transactions.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to fetch transactions.");
+    }
+  };
   const fetchBalanceFlow = async () => {
     try {
       const url = `${import.meta.env.VITE_API_URL}/dashboard/balance-flow`;
@@ -285,12 +311,9 @@ export default function DashboardPage() {
   useEffect(() => {
     // debug
     console.log(monthOptions.find((m) => m.value === selectedMonth));
+    fetchTotalIncomeExpense();
     fetchBalanceFlow();
   }, [selectedMonth]);
-
-  useEffect(() => {
-    setDashboardData({ totalIncome: 4670000, totalSpending: 1969000 });
-  }, []);
 
   return (
     <div className="relative z-0 px-6 space-y-6">
@@ -419,18 +442,22 @@ export default function DashboardPage() {
                 <ArrowUpRight />
                 <span>Total Spending</span>
                 <Badge
-                  variant="outline"
-                  className="text-red-500 bg-red-500/10 border-none ml-2 text-sm"
+                  className={`border-none ml-2 text-sm ${summaryData?.expense.percentage && Number(summaryData?.expense.percentage) > 0 ? "text-red-500 bg-red-500/10" : "text-green-500 bg-green-500/10"}`}
                 >
-                  <TrendingUp />
-                  <span>5%</span>
+                  {summaryData?.expense.percentage &&
+                  Number(summaryData?.expense.percentage) < 0 ? (
+                    <TrendingDown size={100} />
+                  ) : (
+                    <TrendingUp size={100} />
+                  )}
+                  <span>{Math.abs(summaryData?.expense.percentage || 0)}%</span>
                 </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">
                 {formatCurrency(
-                  dashboardData?.totalSpending || 0,
+                  summaryData?.expense.total || 0,
                   "id-ID",
                   "IDR",
                 )}
@@ -443,21 +470,21 @@ export default function DashboardPage() {
                 <ArrowDownLeft />
                 <span>Total Income</span>
                 <Badge
-                  variant="outline"
-                  className="text-green-500 bg-green-500/10 border-none ml-2 text-sm"
+                  className={`text-green-500 bg-green-500/10 border-none ml-2 text-sm ${summaryData?.income.percentage && Number(summaryData?.income.percentage) < 0 ? "text-red-500 bg-red-500/10" : "text-green-500 bg-green-500/10"}`}
                 >
-                  <TrendingUp />
-                  <span>12%</span>
+                  {summaryData?.income.percentage &&
+                  Number(summaryData?.income.percentage) < 0 ? (
+                    <TrendingDown />
+                  ) : (
+                    <TrendingUp />
+                  )}
+                  <span>{Math.abs(summaryData?.income.percentage || 0)}%</span>
                 </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">
-                {formatCurrency(
-                  dashboardData?.totalIncome || 0,
-                  "id-ID",
-                  "IDR",
-                )}
+                {formatCurrency(summaryData?.income.total || 0, "id-ID", "IDR")}
               </p>
             </CardContent>
           </Card>
