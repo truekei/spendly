@@ -57,7 +57,7 @@ type SummaryData = {
 };
 type BalanceChartData = {
   day: string;
-  balance: number;
+  balance: bigint;
 };
 
 export default function DashboardPage() {
@@ -134,8 +134,6 @@ export default function DashboardPage() {
       if (res.status === 200) {
         console.log(res.data);
         setSummaryData(res.data);
-      } else {
-        alert("Failed to fetch transactions.");
       }
     } catch (err) {
       console.error(err);
@@ -155,8 +153,6 @@ export default function DashboardPage() {
       if (res.status === 200) {
         console.log(res.data);
         setBalanceChartData(res.data.balances);
-      } else {
-        alert("Failed to fetch transactions.");
       }
     } catch (err) {
       console.error(err);

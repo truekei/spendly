@@ -76,7 +76,7 @@ export const getBalanceFlow = async (req: Request, res: Response) => {
     const endDate = new Date(Number(year), Number(month) + 1, 1);
 
     const balances = await prisma.$queryRaw`
-      SELECT EXTRACT(DAY FROM date) AS day, SUM(balance) AS balance
+      SELECT EXTRACT(DAY FROM date) AS day, CAST(MAX(balance) AS TEXT) AS balance
       FROM "Transaction"
       WHERE "userId" = ${Number(userId)}
       AND date >= ${startDate}
