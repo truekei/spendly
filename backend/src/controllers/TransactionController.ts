@@ -46,7 +46,7 @@ export const getAll = async (req: Request, res: Response) => {
         },
       },
       where,
-      orderBy: { date: "desc" },
+      orderBy: [{ date: "desc" }, { id: "desc" }],
     });
 
     const yearList = await prisma.transaction
@@ -97,7 +97,7 @@ export const create = async (req: Request, res: Response) => {
       where: {
         userId: Number(userId),
         date: {
-          gt: new Date(date),
+          gte: new Date(date),
         },
       },
       data: {
