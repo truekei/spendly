@@ -9,16 +9,14 @@ import type { User } from "@/types/User";
 import axios from "axios";
 import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 
 type Theme = "light" | "dark";
 
 export default function Layout() {
-  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<Theme>(
-    (getCookie("theme") as Theme) || "light"
+    (getCookie("theme") as Theme) || "light",
   );
 
   const toggleTheme = () =>
@@ -31,10 +29,8 @@ export default function Layout() {
       });
       setUser(res.data.user);
       console.log("User data refetched");
-    } catch {
-      navigate("/login");
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error("Failed to fetch user data", err);
     }
   }
 
@@ -56,8 +52,6 @@ export default function Layout() {
       root.classList.remove("no-theme-transition");
     }, 50);
   }, [theme]);
-
-  if (loading) return <p>Loading...</p>;
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>

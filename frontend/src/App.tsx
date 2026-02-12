@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import "./App.css";
 import Layout from "./components/layout";
+import ProtectedRoute from "./components/protected-route";
 import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -15,9 +16,11 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
 
         {/* Protected routes */}
-        <Route element={<Layout />}>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/transaction" element={<TransactionPage />} />
+        <Route element={<ProtectedRoute />}>
+          <Route element={<Layout />}>
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/transaction" element={<TransactionPage />} />
+          </Route>
         </Route>
 
         {/* Last route = 404 */}

@@ -137,7 +137,6 @@ export default function DashboardPage() {
       }
     } catch (err) {
       console.error(err);
-      alert("Failed to fetch transactions.");
     }
   };
   const fetchBalanceFlow = async () => {
@@ -156,7 +155,6 @@ export default function DashboardPage() {
       }
     } catch (err) {
       console.error(err);
-      alert("Failed to fetch transactions.");
     }
   };
 
