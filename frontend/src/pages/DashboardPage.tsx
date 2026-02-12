@@ -59,6 +59,15 @@ type BalanceChartData = {
   day: string;
   balance: bigint;
 };
+type CategoryItem = {
+  category: string;
+  amount: number;
+};
+type CategoryChartData = {
+  category: string;
+  amount: number;
+  fill: string;
+};
 
 export default function DashboardPage() {
   // const currentDate = new Date().toISOString().split("T")[0];
@@ -114,11 +123,21 @@ export default function DashboardPage() {
   ];
   const currentMonth = new Date().getMonth().toString();
 
+  const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
   const [balanceChartData, setBalanceChartData] = useState<BalanceChartData[]>(
     [],
   );
-  const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
+  const [spendingChartData, setSpendingChartData] = useState<
+    CategoryChartData[]
+  >([]);
+  const [spendingChartConfig, setSpendingChartConfig] = useState<ChartConfig>(
+    {},
+  );
+  const [incomeChartData, setIncomeChartData] = useState<CategoryChartData[]>(
+    [],
+  );
+  const [incomeChartConfig, setIncomeChartConfig] = useState<ChartConfig>({});
 
   const fetchTotalIncomeExpense = async () => {
     try {
@@ -155,6 +174,94 @@ export default function DashboardPage() {
     } catch (err) {
       console.error(err);
     }
+  };
+  const fetchSpendingIncomeByCategory = async () => {
+    try {
+      const url = `${import.meta.env.VITE_API_URL}/dashboard/spending-income-by-category`;
+      const params: Record<string, string> = {};
+      params.month = selectedMonth;
+      params.year = "2025"; // hardcoded for now
+      const res = await axios.get(url, {
+        params,
+        withCredentials: true,
+      });
+      if (res.status === 200) {
+        const maxCategories = 4;
+        console.log(res.data);
+
+        // Set spending chart data and config
+        setSpendingChartData(
+          buildCategoryChartData(res.data.spendingByCategory, maxCategories),
+        );
+        const config: ChartConfig = buildCategoryChartConfig(
+          res.data.spendingByCategory,
+          maxCategories,
+        );
+        setSpendingChartConfig(config);
+        console.log("spending chart config", config);
+
+        // Set income chart data and config
+        setIncomeChartData(
+          buildCategoryChartData(res.data.incomeByCategory, maxCategories),
+        );
+        const incomeConfig: ChartConfig = buildCategoryChartConfig(
+          res.data.incomeByCategory,
+          maxCategories,
+        );
+        setIncomeChartConfig(incomeConfig);
+        console.log("income chart config", incomeConfig);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const buildCategoryChartData = (
+    data: CategoryItem[],
+    maxCategories: number,
+  ): CategoryChartData[] => {
+    const top = data.slice(0, maxCategories);
+    const rest = data.slice(maxCategories);
+
+    const otherAmount = rest.reduce(
+      (sum: number, item: CategoryItem) => sum + item.amount,
+      0,
+    );
+
+    const result: CategoryChartData[] = top.map((item: CategoryItem) => ({
+      ...item,
+      fill: `var(--color-${item.category})`,
+    }));
+
+    if (otherAmount > 0) {
+      result.push({
+        category: "other",
+        amount: otherAmount,
+        fill: "var(--color-other)",
+      });
+    }
+
+    return result;
+  };
+  const buildCategoryChartConfig = (
+    data: CategoryItem[],
+    maxCategories: number,
+  ): ChartConfig => {
+    const config: ChartConfig = {};
+    data.forEach((item: CategoryItem, index: number) => {
+      if (index < maxCategories) {
+        config[item.category as keyof typeof config] = {
+          label: item.category.charAt(0).toUpperCase() + item.category.slice(1),
+          color: `var(--chart-${index + 1})`,
+        };
+      } else if (index === maxCategories) {
+        config["other"] = {
+          label: "Other",
+          color: "var(--chart-5)",
+        };
+      }
+    });
+    return config;
   };
 
   // const balanceChartData = [
@@ -198,82 +305,82 @@ export default function DashboardPage() {
     },
   } satisfies ChartConfig;
 
-  const spendingChartData = [
-    { category: "groceries", amount: 275000, fill: "var(--color-groceries)" },
-    { category: "food", amount: 200000, fill: "var(--color-food)" },
-    { category: "hobbies", amount: 187000, fill: "var(--color-hobbies)" },
-    {
-      category: "transportation",
-      amount: 173000,
-      fill: "var(--color-transportation)",
-    },
-    { category: "other", amount: 177000, fill: "var(--color-other)" },
-  ];
+  // const spendingChartData = [
+  //   { category: "groceries", amount: 275000, fill: "var(--color-groceries)" },
+  //   { category: "food", amount: 200000, fill: "var(--color-food)" },
+  //   { category: "hobbies", amount: 187000, fill: "var(--color-hobbies)" },
+  //   {
+  //     category: "transportation",
+  //     amount: 173000,
+  //     fill: "var(--color-transportation)",
+  //   },
+  //   { category: "other", amount: 177000, fill: "var(--color-other)" },
+  // ];
 
-  const spendingChartConfig = {
-    amount: {
-      label: "Amount",
-      color: "var(--muted-foreground)",
-    },
-    groceries: {
-      label: "Groceries",
-      color: "var(--chart-1)",
-    },
-    food: {
-      label: "Food",
-      color: "var(--chart-2)",
-    },
-    hobbies: {
-      label: "Hobbies",
-      color: "var(--chart-3)",
-    },
-    transportation: {
-      label: "Transportation",
-      color: "var(--chart-4)",
-    },
-    other: {
-      label: "Other",
-      color: "var(--chart-5)",
-    },
-  } satisfies ChartConfig;
+  // const spendingChartConfig = {
+  //   amount: {
+  //     label: "Amount",
+  //     color: "var(--muted-foreground)",
+  //   },
+  //   groceries: {
+  //     label: "Groceries",
+  //     color: "var(--chart-1)",
+  //   },
+  //   food: {
+  //     label: "Food",
+  //     color: "var(--chart-2)",
+  //   },
+  //   hobbies: {
+  //     label: "Hobbies",
+  //     color: "var(--chart-3)",
+  //   },
+  //   transportation: {
+  //     label: "Transportation",
+  //     color: "var(--chart-4)",
+  //   },
+  //   other: {
+  //     label: "Other",
+  //     color: "var(--chart-5)",
+  //   },
+  // } satisfies ChartConfig;
 
-  const incomeChartData = [
-    { category: "salary", amount: 1860000, fill: "var(--color-salary)" },
-    {
-      category: "reimbursement",
-      amount: 273000,
-      fill: "var(--color-reimbursement)",
-    },
-    {
-      category: "investment",
-      amount: 237000,
-      fill: "var(--color-investment)",
-    },
-    { category: "bonus", amount: 30500, fill: "var(--color-bonus)" },
-  ];
+  // const incomeChartData = [
+  //   { category: "salary", amount: 1860000, fill: "var(--color-salary)" },
+  //   {
+  //     category: "reimbursement",
+  //     amount: 273000,
+  //     fill: "var(--color-reimbursement)",
+  //   },
+  //   {
+  //     category: "investment",
+  //     amount: 237000,
+  //     fill: "var(--color-investment)",
+  //   },
+  //   { category: "bonus", amount: 30500, fill: "var(--color-bonus)" },
+  // ];
 
-  const incomeChartConfig = {
-    amount: {
-      label: "Amount",
-      color: "var(--muted-foreground)",
-    },
-    salary: {
-      label: "Salary",
-      color: "var(--chart-1)",
-    },
-    reimbursement: {
-      label: "Reimbursement",
-      color: "var(--chart-2)",
-    },
-    investment: {
-      label: "Investment",
-      color: "var(--chart-3)",
-    },
-    bonus: {
-      label: "Bonus",
-      color: "var(--chart-4)",
-    },
-  } satisfies ChartConfig;
+  // const incomeChartConfig = {
+  //   amount: {
+  //     label: "Amount",
+  //     color: "var(--muted-foreground)",
+  //   },
+  //   salary: {
+  //     label: "Salary",
+  //     color: "var(--chart-1)",
+  //   },
+  //   reimbursement: {
+  //     label: "Reimbursement",
+  //     color: "var(--chart-2)",
+  //   },
+  //   investment: {
+  //     label: "Investment",
+  //     color: "var(--chart-3)",
+  //   },
+  //   bonus: {
+  //     label: "Bonus",
+  //     color: "var(--chart-4)",
+  //   },
+  // } satisfies ChartConfig;
 
   const barChartData = [
     { month: "January", income: 1860000, spending: 800000 },
@@ -306,6 +413,7 @@ export default function DashboardPage() {
     console.log(monthOptions.find((m) => m.value === selectedMonth));
     fetchTotalIncomeExpense();
     fetchBalanceFlow();
+    fetchSpendingIncomeByCategory();
   }, [selectedMonth]);
 
   return (
@@ -491,92 +599,98 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="flex-1">
-            <ChartContainer
-              config={spendingChartConfig}
-              className="[&_.recharts-text]:fill-background"
-            >
-              <PieChart>
-                <Legend
-                  layout="vertical"
-                  verticalAlign="middle"
-                  align="right"
-                  wrapperStyle={{ paddingLeft: 20 }}
-                  content={(props) => {
-                    const { payload } = props;
-                    return (
-                      <ul>
-                        {payload?.map((entry, index) => (
-                          <li
-                            key={`item-${index}`}
-                            className="my-2 flex items-center"
-                            style={{ color: entry.color }}
-                          >
-                            <span
-                              style={{
-                                backgroundColor: entry.color,
-                                width: 12,
-                                height: 12,
-                                borderRadius: "50%",
-                                display: "inline-block",
-                              }}
+            {spendingChartData.length === 0 ? (
+              <div className="flex items-center justify-center h-50">
+                <p className="text-muted-foreground">No data available.</p>
+              </div>
+            ) : (
+              <ChartContainer
+                config={spendingChartConfig}
+                className="[&_.recharts-text]:fill-background"
+              >
+                <PieChart>
+                  <Legend
+                    layout="vertical"
+                    verticalAlign="middle"
+                    align="right"
+                    wrapperStyle={{ paddingLeft: 20 }}
+                    content={(props) => {
+                      const { payload } = props;
+                      return (
+                        <ul>
+                          {payload?.map((entry, index) => (
+                            <li
+                              key={`item-${index}`}
+                              className="my-2 flex items-center"
+                              style={{ color: entry.color }}
                             >
-                              &nbsp;
-                            </span>
-                            <span className="mx-2 font-medium">
-                              {spendingChartConfig[
-                                entry.value as keyof typeof spendingChartConfig
-                              ]?.label ?? entry.value}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    );
-                  }}
-                />
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      hideLabel
-                      formatter={(value, name) => {
-                        return (
-                          <div className="flex">
-                            <span
-                              style={{
-                                backgroundColor:
-                                  spendingChartConfig[
-                                    name as keyof typeof spendingChartConfig
-                                  ]?.color ?? "var(--muted-foreground)",
-                                width: 5,
-                                height: "auto",
-                                display: "inline-block",
-                              }}
-                            >
-                              &nbsp;
-                            </span>
-                            <span className="mx-2 text-muted-foreground">
-                              {spendingChartConfig[
-                                name as keyof typeof spendingChartConfig
-                              ]?.label ?? name}
-                            </span>
-                            <span className="font-bold">
-                              {formatCurrency(Number(value), "id-ID", "IDR")}
-                            </span>
-                          </div>
-                        );
-                      }}
-                    />
-                  }
-                />
-                <Pie
-                  data={spendingChartData}
-                  dataKey="amount"
-                  nameKey="category"
-                  innerRadius={20}
-                  cornerRadius={4}
-                  paddingAngle={4}
-                ></Pie>
-              </PieChart>
-            </ChartContainer>
+                              <span
+                                style={{
+                                  backgroundColor: entry.color,
+                                  width: 12,
+                                  height: 12,
+                                  borderRadius: "50%",
+                                  display: "inline-block",
+                                }}
+                              >
+                                &nbsp;
+                              </span>
+                              <span className="mx-2 font-medium">
+                                {spendingChartConfig[
+                                  entry.value as keyof typeof spendingChartConfig
+                                ]?.label ?? entry.value}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      );
+                    }}
+                  />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        hideLabel
+                        formatter={(value, name) => {
+                          return (
+                            <div className="flex">
+                              <span
+                                style={{
+                                  backgroundColor:
+                                    spendingChartConfig[
+                                      name as keyof typeof spendingChartConfig
+                                    ]?.color ?? "var(--muted-foreground)",
+                                  width: 5,
+                                  height: "auto",
+                                  display: "inline-block",
+                                }}
+                              >
+                                &nbsp;
+                              </span>
+                              <span className="mx-2 text-muted-foreground">
+                                {spendingChartConfig[
+                                  name as keyof typeof spendingChartConfig
+                                ]?.label ?? name}
+                              </span>
+                              <span className="font-bold">
+                                {formatCurrency(Number(value), "id-ID", "IDR")}
+                              </span>
+                            </div>
+                          );
+                        }}
+                      />
+                    }
+                  />
+                  <Pie
+                    data={spendingChartData}
+                    dataKey="amount"
+                    nameKey="category"
+                    innerRadius={20}
+                    cornerRadius={4}
+                    paddingAngle={4}
+                  ></Pie>
+                </PieChart>
+              </ChartContainer>
+            )}
           </CardContent>
         </Card>
         <Card className="xl:col-span-2 lg:col-span-1">
@@ -587,92 +701,98 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pb-0">
-            <ChartContainer
-              config={incomeChartConfig}
-              className="[&_.recharts-text]:fill-background"
-            >
-              <PieChart>
-                <Legend
-                  layout="vertical"
-                  verticalAlign="middle"
-                  align="right"
-                  wrapperStyle={{ paddingLeft: 20 }}
-                  content={(props) => {
-                    const { payload } = props;
-                    return (
-                      <ul>
-                        {payload?.map((entry, index) => (
-                          <li
-                            key={`item-${index}`}
-                            className="my-2 flex items-center"
-                            style={{ color: entry.color }}
-                          >
-                            <span
-                              style={{
-                                backgroundColor: entry.color,
-                                width: 12,
-                                height: 12,
-                                borderRadius: "50%",
-                                display: "inline-block",
-                              }}
+            {incomeChartData.length === 0 ? (
+              <div className="flex items-center justify-center h-50">
+                <p className="text-muted-foreground">No data available.</p>
+              </div>
+            ) : (
+              <ChartContainer
+                config={incomeChartConfig}
+                className="[&_.recharts-text]:fill-background"
+              >
+                <PieChart>
+                  <Legend
+                    layout="vertical"
+                    verticalAlign="middle"
+                    align="right"
+                    wrapperStyle={{ paddingLeft: 20 }}
+                    content={(props) => {
+                      const { payload } = props;
+                      return (
+                        <ul>
+                          {payload?.map((entry, index) => (
+                            <li
+                              key={`item-${index}`}
+                              className="my-2 flex items-center"
+                              style={{ color: entry.color }}
                             >
-                              &nbsp;
-                            </span>
-                            <span className="mx-2 font-medium">
-                              {incomeChartConfig[
-                                entry.value as keyof typeof incomeChartConfig
-                              ]?.label ?? entry.value}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    );
-                  }}
-                />
-                <ChartTooltip
-                  content={
-                    <ChartTooltipContent
-                      hideLabel
-                      formatter={(value, name) => {
-                        return (
-                          <div className="flex">
-                            <span
-                              style={{
-                                backgroundColor:
-                                  incomeChartConfig[
-                                    name as keyof typeof incomeChartConfig
-                                  ]?.color ?? "var(--muted-foreground)",
-                                width: 5,
-                                height: "auto",
-                                display: "inline-block",
-                              }}
-                            >
-                              &nbsp;
-                            </span>
-                            <span className="mx-2 text-muted-foreground">
-                              {incomeChartConfig[
-                                name as keyof typeof incomeChartConfig
-                              ]?.label ?? name}
-                            </span>
-                            <span className="font-bold">
-                              {formatCurrency(Number(value), "id-ID", "IDR")}
-                            </span>
-                          </div>
-                        );
-                      }}
-                    />
-                  }
-                />
-                <Pie
-                  data={incomeChartData}
-                  dataKey="amount"
-                  nameKey="category"
-                  innerRadius={20}
-                  cornerRadius={4}
-                  paddingAngle={4}
-                ></Pie>
-              </PieChart>
-            </ChartContainer>
+                              <span
+                                style={{
+                                  backgroundColor: entry.color,
+                                  width: 12,
+                                  height: 12,
+                                  borderRadius: "50%",
+                                  display: "inline-block",
+                                }}
+                              >
+                                &nbsp;
+                              </span>
+                              <span className="mx-2 font-medium">
+                                {incomeChartConfig[
+                                  entry.value as keyof typeof incomeChartConfig
+                                ]?.label ?? entry.value}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      );
+                    }}
+                  />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        hideLabel
+                        formatter={(value, name) => {
+                          return (
+                            <div className="flex">
+                              <span
+                                style={{
+                                  backgroundColor:
+                                    incomeChartConfig[
+                                      name as keyof typeof incomeChartConfig
+                                    ]?.color ?? "var(--muted-foreground)",
+                                  width: 5,
+                                  height: "auto",
+                                  display: "inline-block",
+                                }}
+                              >
+                                &nbsp;
+                              </span>
+                              <span className="mx-2 text-muted-foreground">
+                                {incomeChartConfig[
+                                  name as keyof typeof incomeChartConfig
+                                ]?.label ?? name}
+                              </span>
+                              <span className="font-bold">
+                                {formatCurrency(Number(value), "id-ID", "IDR")}
+                              </span>
+                            </div>
+                          );
+                        }}
+                      />
+                    }
+                  />
+                  <Pie
+                    data={incomeChartData}
+                    dataKey="amount"
+                    nameKey="category"
+                    innerRadius={20}
+                    cornerRadius={4}
+                    paddingAngle={4}
+                  ></Pie>
+                </PieChart>
+              </ChartContainer>
+            )}
           </CardContent>
         </Card>
         <Card className="xl:col-span-2 lg:col-span-2 md:col-span-1">
