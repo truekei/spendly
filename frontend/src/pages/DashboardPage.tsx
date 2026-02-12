@@ -112,7 +112,6 @@ export default function DashboardPage() {
       label: "December",
     },
   ];
-
   const currentMonth = new Date().getMonth().toString();
 
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
@@ -376,6 +375,7 @@ export default function DashboardPage() {
                       `${formatCurrency(value, "id-ID", "IDR")}`
                     }
                     tickCount={4}
+                    domain={["dataMin", "auto"]}
                   />
                   <ChartTooltip
                     cursor={false}
@@ -402,7 +402,7 @@ export default function DashboardPage() {
                   />
                   <Line
                     dataKey="balance"
-                    type="natural"
+                    type="monotone"
                     stroke="var(--color-balance)"
                     dot={false}
                     strokeWidth={2}
