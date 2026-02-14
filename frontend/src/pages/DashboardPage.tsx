@@ -68,6 +68,11 @@ type CategoryChartData = {
   amount: number;
   fill: string;
 };
+type BarChartData = {
+  month: string;
+  income: number;
+  spending: number;
+};
 
 export default function DashboardPage() {
   // const currentDate = new Date().toISOString().split("T")[0];
@@ -138,6 +143,7 @@ export default function DashboardPage() {
     [],
   );
   const [incomeChartConfig, setIncomeChartConfig] = useState<ChartConfig>({});
+  const [barChartData, setBarChartData] = useState<BarChartData[]>([]);
 
   const fetchTotalIncomeExpense = async () => {
     try {
@@ -215,7 +221,36 @@ export default function DashboardPage() {
       console.error(err);
     }
   };
-
+  const fetchIncomeVsSpending = async () => {
+    try {
+      const url = `${import.meta.env.VITE_API_URL}/dashboard/income-vs-spending`;
+      const params: Record<string, string> = {};
+      params.year = "2025"; // hardcoded for now
+      const res = await axios.get(url, {
+        params,
+        withCredentials: true,
+      });
+      if (res.status === 200) {
+        console.log(res.data);
+        console.log(
+          res.data.incomeVsSpending.map((item: BarChartData) => ({
+            month: monthOptions.find((m) => m.value === item.month)?.label,
+            income: item.income,
+            spending: item.spending,
+          })),
+        );
+        setBarChartData(
+          res.data.incomeVsSpending.map((item: BarChartData) => ({
+            month: monthOptions.find((m) => m.value === item.month)?.label,
+            income: item.income,
+            spending: item.spending,
+          })),
+        );
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
   const buildCategoryChartData = (
     data: CategoryItem[],
     maxCategories: number,
@@ -264,139 +299,12 @@ export default function DashboardPage() {
     return config;
   };
 
-  // const balanceChartData = [
-  //   { day: "1", balance: 1860000 },
-  //   { day: "2", balance: 3050000 },
-  //   { day: "3", balance: 2370000 },
-  //   { day: "4", balance: 730000 },
-  //   { day: "5", balance: 2090000 },
-  //   { day: "6", balance: 2140000 },
-  //   { day: "7", balance: 3670000 },
-  //   { day: "8", balance: 4560000 },
-  //   { day: "9", balance: 3490000 },
-  //   { day: "10", balance: 2900000 },
-  //   { day: "11", balance: 4100000 },
-  //   { day: "12", balance: 3670000 },
-  //   { day: "13", balance: 3120000 },
-  //   { day: "14", balance: 3100000 },
-  //   { day: "15", balance: 2890000 },
-  //   { day: "16", balance: 2230000 },
-  //   { day: "17", balance: 1890000 },
-  //   { day: "18", balance: 1210000 },
-  //   { day: "19", balance: 900000 },
-  //   { day: "20", balance: 500000 },
-  //   { day: "21", balance: 100000 },
-  //   { day: "22", balance: 700000 },
-  //   { day: "23", balance: 1200000 },
-  //   { day: "24", balance: 1000000 },
-  //   { day: "25", balance: 1500000 },
-  //   { day: "26", balance: 2000000 },
-  //   { day: "27", balance: 2500000 },
-  //   { day: "28", balance: 3000000 },
-  //   { day: "29", balance: 3500000 },
-  //   { day: "30", balance: 4000000 },
-  //   { day: "31", balance: 4500000 },
-  // ];
-
   const balanceChartConfig = {
     balance: {
       label: "Balance",
       color: "var(--chart-1)",
     },
   } satisfies ChartConfig;
-
-  // const spendingChartData = [
-  //   { category: "groceries", amount: 275000, fill: "var(--color-groceries)" },
-  //   { category: "food", amount: 200000, fill: "var(--color-food)" },
-  //   { category: "hobbies", amount: 187000, fill: "var(--color-hobbies)" },
-  //   {
-  //     category: "transportation",
-  //     amount: 173000,
-  //     fill: "var(--color-transportation)",
-  //   },
-  //   { category: "other", amount: 177000, fill: "var(--color-other)" },
-  // ];
-
-  // const spendingChartConfig = {
-  //   amount: {
-  //     label: "Amount",
-  //     color: "var(--muted-foreground)",
-  //   },
-  //   groceries: {
-  //     label: "Groceries",
-  //     color: "var(--chart-1)",
-  //   },
-  //   food: {
-  //     label: "Food",
-  //     color: "var(--chart-2)",
-  //   },
-  //   hobbies: {
-  //     label: "Hobbies",
-  //     color: "var(--chart-3)",
-  //   },
-  //   transportation: {
-  //     label: "Transportation",
-  //     color: "var(--chart-4)",
-  //   },
-  //   other: {
-  //     label: "Other",
-  //     color: "var(--chart-5)",
-  //   },
-  // } satisfies ChartConfig;
-
-  // const incomeChartData = [
-  //   { category: "salary", amount: 1860000, fill: "var(--color-salary)" },
-  //   {
-  //     category: "reimbursement",
-  //     amount: 273000,
-  //     fill: "var(--color-reimbursement)",
-  //   },
-  //   {
-  //     category: "investment",
-  //     amount: 237000,
-  //     fill: "var(--color-investment)",
-  //   },
-  //   { category: "bonus", amount: 30500, fill: "var(--color-bonus)" },
-  // ];
-
-  // const incomeChartConfig = {
-  //   amount: {
-  //     label: "Amount",
-  //     color: "var(--muted-foreground)",
-  //   },
-  //   salary: {
-  //     label: "Salary",
-  //     color: "var(--chart-1)",
-  //   },
-  //   reimbursement: {
-  //     label: "Reimbursement",
-  //     color: "var(--chart-2)",
-  //   },
-  //   investment: {
-  //     label: "Investment",
-  //     color: "var(--chart-3)",
-  //   },
-  //   bonus: {
-  //     label: "Bonus",
-  //     color: "var(--chart-4)",
-  //   },
-  // } satisfies ChartConfig;
-
-  const barChartData = [
-    { month: "January", income: 1860000, spending: 800000 },
-    // { month: "February", income: 2050000, spending: 950000 },
-    // { month: "March", income: 2370000, spending: 1100000 },
-    // { month: "April", income: 1730000, spending: 700000 },
-    // { month: "May", income: 2090000, spending: 1200000 },
-    // { month: "June", income: 2140000, spending: 1300000 },
-    // { month: "July", income: 2670000, spending: 1500000 },
-    // { month: "August", income: 2560000, spending: 1400000 },
-    // { month: "September", income: 2490000, spending: 1350000 },
-    // { month: "October", income: 2900000, spending: 1600000 },
-    // { month: "November", income: 3100000, spending: 1700000 },
-    // { month: "December", income: 3670000, spending: 1900000 },
-  ];
-
   const barChartConfig = {
     income: {
       label: "Income",
@@ -415,6 +323,10 @@ export default function DashboardPage() {
     fetchBalanceFlow();
     fetchSpendingIncomeByCategory();
   }, [selectedMonth]);
+
+  useEffect(() => {
+    fetchIncomeVsSpending();
+  }, []);
 
   return (
     <div className="relative z-0 px-6 space-y-6">
