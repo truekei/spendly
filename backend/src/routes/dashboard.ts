@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   getBalanceFlow,
   getIncomeExpense,
+  getIncomeVsSpending,
   getSpendingIncomeByCategory,
 } from "../controllers/DashboardController";
 import { authMiddleware } from "../middlewares/auth";
@@ -15,5 +16,6 @@ router.get(
   authMiddleware,
   getSpendingIncomeByCategory,
 );
+router.get("/income-vs-spending", authMiddleware, getIncomeVsSpending);
 
 export default router;

@@ -134,3 +134,53 @@ export const getSpendingIncomeByCategory = async (
     res.status(500).json({ message: "Failed to retrieve transactions" });
   }
 };
+
+// GET INCOME VS SPENDING
+export const getIncomeVsSpending = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+    const { year } = req.query;
+
+    const startDate = new Date(Number(year), 0, 1);
+    const endDate = new Date(Number(year) + 1, 0, 1);
+
+    const result = (await prisma.$queryRaw`
+      SELECT CAST(EXTRACT(MONTH FROM date) AS INTEGER) AS month, SUM(amount) as amount, type
+      FROM "Transaction"
+      WHERE "Transaction"."userId" = ${Number(userId)}
+      AND date >= ${startDate}
+      AND date < ${endDate}
+      GROUP BY type, month
+      ORDER BY month ASC
+    `) as Array<{
+      month: number;
+      amount: number;
+      type: string;
+    }>;
+
+    const incomeVsSpending: {
+      month: string;
+      income: number;
+      spending: number;
+    }[] = [];
+    for (let i = 1; i <= 12; i++) {
+      // if month data not found, dont include it
+      if (!result.find((item: any) => item.month === i)) continue;
+      const monthData = result.filter((item: any) => item.month === i);
+      const income =
+        monthData.find((item: any) => item.type === "Income")?.amount || 0;
+      const spending =
+        monthData.find((item: any) => item.type === "Expense")?.amount || 0;
+      incomeVsSpending.push({
+        month: String(i - 1),
+        income: Number(income),
+        spending: Number(spending),
+      });
+    }
+
+    res.status(200).json({ incomeVsSpending });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to retrieve transactions" });
+  }
+};
