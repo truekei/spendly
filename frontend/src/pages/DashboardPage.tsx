@@ -125,6 +125,7 @@ export default function DashboardPage() {
     },
   ];
   const currentMonth = new Date().getMonth().toString();
+  const currentYear = new Date().getFullYear().toString();
 
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
@@ -148,7 +149,7 @@ export default function DashboardPage() {
       const url = `${import.meta.env.VITE_API_URL}/dashboard/income-expense`;
       const params: Record<string, string> = {};
       params.month = selectedMonth;
-      params.year = "2025"; // hardcoded for now
+      params.year = currentYear;
       const res = await axios.get(url, {
         params,
         withCredentials: true,
@@ -166,7 +167,7 @@ export default function DashboardPage() {
       const url = `${import.meta.env.VITE_API_URL}/dashboard/balance-flow`;
       const params: Record<string, string> = {};
       params.month = selectedMonth;
-      params.year = "2025"; // hardcoded for now
+      params.year = currentYear;
       const res = await axios.get(url, {
         params,
         withCredentials: true,
@@ -184,7 +185,7 @@ export default function DashboardPage() {
       const url = `${import.meta.env.VITE_API_URL}/dashboard/spending-income-by-category`;
       const params: Record<string, string> = {};
       params.month = selectedMonth;
-      params.year = "2025"; // hardcoded for now
+      params.year = currentYear;
       const res = await axios.get(url, {
         params,
         withCredentials: true,
@@ -223,7 +224,7 @@ export default function DashboardPage() {
     try {
       const url = `${import.meta.env.VITE_API_URL}/dashboard/income-vs-spending`;
       const params: Record<string, string> = {};
-      params.year = "2025"; // hardcoded for now
+      params.year = currentYear;
       const res = await axios.get(url, {
         params,
         withCredentials: true,
@@ -343,11 +344,13 @@ export default function DashboardPage() {
             <SelectContent>
               <SelectGroup>
                 <SelectLabel>Filter by Month</SelectLabel>
-                {monthOptions.map((month) => (
-                  <SelectItem key={month.value} value={month.value}>
-                    {month.label}
-                  </SelectItem>
-                ))}
+                {monthOptions
+                  .slice(0, Number(currentMonth) + 1)
+                  .map((month) => (
+                    <SelectItem key={month.value} value={month.value}>
+                      {month.label}
+                    </SelectItem>
+                  ))}
               </SelectGroup>
             </SelectContent>
           </Select>
