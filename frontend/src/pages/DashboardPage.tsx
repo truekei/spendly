@@ -1,5 +1,4 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ChartContainer,
@@ -28,7 +27,6 @@ import axios from "axios";
 import {
   ArrowDownLeft,
   ArrowUpRight,
-  Download,
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
@@ -353,10 +351,10 @@ export default function DashboardPage() {
               </SelectGroup>
             </SelectContent>
           </Select>
-          <Button className="w-fit">
+          {/* <Button className="w-fit">
             <Download />
             Export
-          </Button>
+          </Button> */}
         </div>
       </div>
       <div className="grid xl:grid-cols-6 lg:grid-cols-2 md:grid-cols-1 gap-4 overflow-x-auto">
@@ -715,71 +713,77 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={barChartConfig}>
-              <BarChart
-                accessibilityLayer
-                data={barChartData}
-                layout="vertical"
-                margin={{ left: -15, right: 0, top: 0, bottom: 0 }}
-              >
-                <YAxis
-                  type="category"
-                  dataKey="month"
-                  tickLine={false}
-                  tickMargin={10}
-                  axisLine={false}
-                  tickFormatter={(value) => value.slice(0, 3)}
-                />
-                <XAxis
-                  type="number"
-                  tickMargin={10}
-                  tickFormatter={(value) =>
-                    `${formatCurrency(value, "id-ID", "IDR")}`
-                  }
-                  tickCount={4}
-                />
-                <ChartTooltip
-                  cursor={false}
-                  content={
-                    <ChartTooltipContent
-                      formatter={(value, name) => {
-                        return (
-                          <div className="flex">
-                            <span
-                              style={{
-                                backgroundColor:
-                                  barChartConfig[
-                                    name as keyof typeof barChartConfig
-                                  ]?.color ?? "var(--muted-foreground)",
-                                width: 5,
-                                height: "auto",
-                                display: "inline-block",
-                              }}
-                            >
-                              &nbsp;
-                            </span>
-                            <span className="mx-2 text-muted-foreground">
-                              {barChartConfig[
-                                name as keyof typeof barChartConfig
-                              ]?.label ?? name}
-                            </span>
-                            <span className="font-bold">
-                              {formatCurrency(Number(value), "id-ID", "IDR")}
-                            </span>
-                          </div>
-                        );
-                      }}
-                    />
-                  }
-                />
-                <Bar dataKey="income" fill="var(--color-income)" radius={4} />
-                <Bar
-                  dataKey="spending"
-                  fill="var(--color-spending)"
-                  radius={4}
-                />
-              </BarChart>
-            </ChartContainer>
+            {barChartData.length === 0 ? (
+              <div className="flex items-center justify-center h-50">
+                <p className="text-muted-foreground">No data available.</p>
+              </div>
+            ) : (
+              <ChartContainer config={barChartConfig}>
+                <BarChart
+                  accessibilityLayer
+                  data={barChartData}
+                  layout="vertical"
+                  margin={{ left: -15, right: 0, top: 0, bottom: 0 }}
+                >
+                  <YAxis
+                    type="category"
+                    dataKey="month"
+                    tickLine={false}
+                    tickMargin={10}
+                    axisLine={false}
+                    tickFormatter={(value) => value.slice(0, 3)}
+                  />
+                  <XAxis
+                    type="number"
+                    tickMargin={10}
+                    tickFormatter={(value) =>
+                      `${formatCurrency(value, "id-ID", "IDR")}`
+                    }
+                    tickCount={4}
+                  />
+                  <ChartTooltip
+                    cursor={false}
+                    content={
+                      <ChartTooltipContent
+                        formatter={(value, name) => {
+                          return (
+                            <div className="flex">
+                              <span
+                                style={{
+                                  backgroundColor:
+                                    barChartConfig[
+                                      name as keyof typeof barChartConfig
+                                    ]?.color ?? "var(--muted-foreground)",
+                                  width: 5,
+                                  height: "auto",
+                                  display: "inline-block",
+                                }}
+                              >
+                                &nbsp;
+                              </span>
+                              <span className="mx-2 text-muted-foreground">
+                                {barChartConfig[
+                                  name as keyof typeof barChartConfig
+                                ]?.label ?? name}
+                              </span>
+                              <span className="font-bold">
+                                {formatCurrency(Number(value), "id-ID", "IDR")}
+                              </span>
+                            </div>
+                          );
+                        }}
+                      />
+                    }
+                  />
+                  <Bar dataKey="income" fill="var(--color-income)" radius={4} />
+                  <Bar
+                    dataKey="spending"
+                    fill="var(--color-spending)"
+                    radius={4}
+                  />
+                </BarChart>
+              </ChartContainer>
+            )}
           </CardContent>
         </Card>
       </div>
