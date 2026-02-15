@@ -79,7 +79,7 @@ export default function TransactionPage() {
   );
   const [searchQuery, setSearchQuery] = useState("");
 
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { refetchUser } = useUser();
 
