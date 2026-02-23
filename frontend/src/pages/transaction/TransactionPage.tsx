@@ -15,7 +15,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Input, LocaleCurrencyInput } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
@@ -322,7 +322,7 @@ export default function TransactionPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Spending Form */}
+      {/* Transaction Form */}
       <Dialog
         open={showTransactionDialog}
         onOpenChange={setShowTransactionDialog}
@@ -353,10 +353,19 @@ export default function TransactionPage() {
                   <FormItem className="flex flex-col">
                     <FormLabel>Amount</FormLabel>
                     <FormControl>
-                      <Input
+                      {/* <Input
                         type="number"
                         placeholder="Enter amount"
                         {...field}
+                      /> */}
+                      <LocaleCurrencyInput
+                        locale="id-ID"
+                        currency="IDR"
+                        onValueChange={(value) => {
+                          field.onChange(value ? parseFloat(value) : 0);
+                        }}
+                        value={field.value}
+                        step={1}
                       />
                     </FormControl>
                     <FormMessage />
