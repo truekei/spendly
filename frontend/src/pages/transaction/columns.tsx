@@ -1,6 +1,17 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { type ColumnDef } from "@tanstack/react-table";
+import { MoreHorizontal, Pencil, Trash } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export type Transaction = {
   amount: number;
@@ -49,7 +60,7 @@ export const columns: ColumnDef<Transaction>[] = [
     header: "Amount",
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("amount"));
-      const formatted = formatCurrency(amount, "id-ID", "IDR")
+      const formatted = formatCurrency(amount, "id-ID", "IDR");
       const color =
         row.getValue("type") === "Income" ? "text-green-500" : "text-rose-500";
       const prefix = row.getValue("type") === "Income" ? "+ " : "- ";
@@ -70,6 +81,48 @@ export const columns: ColumnDef<Transaction>[] = [
     header: "Description",
     cell: ({ row }) => {
       return <div>{row.getValue("description") || "—"}</div>;
+    },
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => {
+      const transaction = row.original;
+      return (
+        <div className="text-right px-7">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                aria-label="Open actions"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() =>
+                  console.log("Selected transaction:", transaction)
+                }
+              >
+                <Pencil />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() =>
+                  console.log("Selected transaction:", transaction)
+                }
+                variant="destructive"
+              >
+                <Trash />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      );
     },
   },
 ];
