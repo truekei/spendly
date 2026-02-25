@@ -141,6 +141,87 @@ export const create = async (req: Request, res: Response) => {
   }
 };
 
+// UPDATE TRANSACTION
+export const update = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+    const { id, type, amount, description, category, date } = req.body;
+
+    const oldTransaction = await prisma.transaction.findFirstOrThrow({
+      where: {
+        id: Number(id),
+        userId: Number(userId),
+      },
+    });
+
+    const amountDifference = BigInt(amount - oldTransaction.amount);
+    console.log("Amount difference:", amountDifference.toString());
+
+    const user = await prisma.user.findUniqueOrThrow({
+      select: { balance: true },
+      where: { id: userId },
+    });
+
+    const updatedBalance =
+      type === "Income"
+        ? user.balance + BigInt(amountDifference)
+        : user.balance - BigInt(amountDifference);
+
+    await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        balance: updatedBalance,
+      },
+    });
+
+    await prisma.transaction.updateMany({
+      where: {
+        userId: Number(userId),
+        date: {
+          gte: new Date(date),
+        },
+      },
+      data: {
+        balance:
+          type === "Income"
+            ? { increment: BigInt(amountDifference) }
+            : { decrement: BigInt(amountDifference) },
+      },
+    });
+
+    const transaction = await prisma.transaction.update({
+      where: {
+        id: Number(id),
+      },
+      data: {
+        amount: Number(amount),
+        balance: updatedBalance,
+        type: String(type),
+        description: String(description),
+        date: new Date(date),
+        category: {
+          connect: {
+            id: Number(category),
+          },
+        },
+      },
+    });
+
+    res.status(201).json({
+      message: "Transaction updated",
+      transaction: {
+        ...transaction,
+        balance: transaction.balance.toString(),
+      },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Transaction update failed" });
+  }
+};
+
 // GET CATEGORIES
 export const getCategories = async (req: Request, res: Response) => {
   const userId = (req as any).user.id;
