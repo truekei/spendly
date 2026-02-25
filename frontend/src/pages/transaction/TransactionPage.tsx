@@ -69,6 +69,7 @@ export default function TransactionPage() {
   const [data, setData] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [yearSelections, setYearSelections] = useState<string[]>([]);
+  const [isEditTransaction, setIsEditTransaction] = useState(false);
   const [dialogHeader, setDialogHeader] = useState("Spending");
   const [showTransactionTypeDialog, setShowTransactionTypeDialog] =
     useState(false);
@@ -155,7 +156,7 @@ export default function TransactionPage() {
       });
   }
 
-  async function onSubmit(data: z.infer<typeof TransactionFormSchema>) {
+  const onSubmit = async (data: z.infer<typeof TransactionFormSchema>) => {
     console.log(data);
     const url = `${import.meta.env.VITE_API_URL}/transaction`;
     try {
@@ -175,7 +176,30 @@ export default function TransactionPage() {
     }
     setShowTransactionDialog(false);
     transactionForm.reset();
-  }
+  };
+
+  const onEditSubmit = async (data: z.infer<typeof TransactionFormSchema>) => {
+    console.log(data);
+    // const url = `${import.meta.env.VITE_API_URL}/transaction`;
+    // try {
+    //   const res = await axios.post(url, data, {
+    //     withCredentials: true,
+    //   });
+    //   console.log(res);
+    //   if (res.status === 201) {
+    //     await fetchData();
+    //     refetchUser();
+    //   }
+    //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // } catch (err: any) {
+    //   console.error(err.response?.data || err.message);
+    //   alert("Transaction creation failed.");
+    //   return;
+    // }
+    setShowTransactionDialog(false);
+    setIsEditTransaction(false);
+    transactionForm.reset();
+  };
 
   async function onCategorySubmit(data: z.infer<typeof CategoryFormSchema>) {
     const url = `${import.meta.env.VITE_API_URL}/transaction/category`;
@@ -255,7 +279,26 @@ export default function TransactionPage() {
             <Search className="text-muted-foreground" />
           </div>
         </div>
-        <DataTable columns={columns} data={data} />
+        <DataTable
+          columns={columns({
+            onEdit: (row) => {
+              transactionForm.reset({
+                amount: row.amount,
+                type: row.type,
+                description: row.description || "",
+                category: row.category.id ? String(row.category.id) : "",
+                date: new Date(row.date),
+              });
+              setDialogHeader(row.type === "Income" ? "Income" : "Spending");
+              setIsEditTransaction(true);
+              setShowTransactionDialog(true);
+            },
+            onDelete: (id) => {
+              console.log("Delete transaction with id:", id);
+            },
+          })}
+          data={data}
+        />
       </div>
 
       {/* Choose Transaction Type (Income/Expense) */}
@@ -329,14 +372,20 @@ export default function TransactionPage() {
       >
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Add {dialogHeader}</DialogTitle>
+            <DialogTitle>
+              {isEditTransaction ? "Edit" : "Add"} {dialogHeader}
+            </DialogTitle>
             <DialogDescription>
-              Add a new {dialogHeader.toLowerCase()} to your account.
+              {isEditTransaction
+                ? `Edit your ${dialogHeader.toLowerCase()} transaction.`
+                : `Add a new ${dialogHeader.toLowerCase()} to your account.`}
             </DialogDescription>
           </DialogHeader>
           <Form {...transactionForm}>
             <form
-              onSubmit={transactionForm.handleSubmit(onSubmit)}
+              onSubmit={transactionForm.handleSubmit(
+                isEditTransaction ? onEditSubmit : onSubmit,
+              )}
               className="space-y-8"
             >
               {/* Type */}

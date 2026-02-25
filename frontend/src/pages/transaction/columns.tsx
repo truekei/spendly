@@ -13,16 +13,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+interface ColumnProps {
+  onEdit: (row: Transaction) => void;
+  onDelete: (id: number) => void;
+}
+
 export type Transaction = {
+  id: number;
   amount: number;
   balance: number;
   type: "Income" | "Expense";
   description: string | null;
-  category: string;
+  category: {
+    id: number;
+    name: string;
+  };
   date: string;
 };
 
-export const columns: ColumnDef<Transaction>[] = [
+export const columns = ({
+  onEdit,
+  onDelete,
+}: ColumnProps): ColumnDef<Transaction>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -79,8 +91,8 @@ export const columns: ColumnDef<Transaction>[] = [
       const amount = parseFloat(row.getValue("amount"));
       const formatted = formatCurrency(amount, "id-ID", "IDR");
       const color =
-        row.getValue("type") === "Income" ? "text-green-500" : "text-rose-500";
-      const prefix = row.getValue("type") === "Income" ? "+ " : "- ";
+        row.original.type === "Income" ? "text-green-500" : "text-rose-500";
+      const prefix = row.original.type === "Income" ? "+ " : "- ";
 
       return <div className={`${color}`}>{prefix + formatted}</div>;
     },
@@ -108,18 +120,12 @@ export const columns: ColumnDef<Transaction>[] = [
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() =>
-                  console.log("Selected transaction:", transaction)
-                }
-              >
+              <DropdownMenuItem onClick={() => onEdit(transaction)}>
                 <Pencil />
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() =>
-                  console.log("Selected transaction:", transaction)
-                }
+                onClick={() => onDelete(transaction.id)}
                 variant="destructive"
               >
                 <Trash />
