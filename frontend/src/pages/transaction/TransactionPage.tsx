@@ -50,6 +50,7 @@ interface Category {
 }
 
 const TransactionFormSchema = z.object({
+  id: z.string().optional(),
   type: z.string(),
   amount: z.coerce.number<number>().min(0, "Amount must be positive"),
   description: z.string().max(1000).optional(),
@@ -180,22 +181,22 @@ export default function TransactionPage() {
 
   const onEditSubmit = async (data: z.infer<typeof TransactionFormSchema>) => {
     console.log(data);
-    // const url = `${import.meta.env.VITE_API_URL}/transaction`;
-    // try {
-    //   const res = await axios.post(url, data, {
-    //     withCredentials: true,
-    //   });
-    //   console.log(res);
-    //   if (res.status === 201) {
-    //     await fetchData();
-    //     refetchUser();
-    //   }
-    //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    // } catch (err: any) {
-    //   console.error(err.response?.data || err.message);
-    //   alert("Transaction creation failed.");
-    //   return;
-    // }
+    const url = `${import.meta.env.VITE_API_URL}/transaction/${data.id}`;
+    try {
+      const res = await axios.patch(url, data, {
+        withCredentials: true,
+      });
+      console.log(res);
+      if (res.status === 201) {
+        await fetchData();
+        refetchUser();
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error(err.response?.data || err.message);
+      alert("Transaction creation failed.");
+      return;
+    }
     setShowTransactionDialog(false);
     setIsEditTransaction(false);
     transactionForm.reset();
@@ -283,6 +284,7 @@ export default function TransactionPage() {
           columns={columns({
             onEdit: (row) => {
               transactionForm.reset({
+                id: String(row.id),
                 amount: row.amount,
                 type: row.type,
                 description: row.description || "",
