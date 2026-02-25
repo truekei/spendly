@@ -56,6 +56,23 @@ export const columns: ColumnDef<Transaction>[] = [
     },
   },
   {
+    accessorKey: "description",
+    header: "Description",
+    cell: ({ row }) => {
+      return (
+        <div>
+          {row.getValue("description") ? (
+            <span>{row.getValue("description")}</span>
+          ) : (
+            <span className="italic text-muted-foreground font-light text-xs">
+              Empty.
+            </span>
+          )}
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "amount",
     header: "Amount",
     cell: ({ row }) => {
@@ -71,17 +88,6 @@ export const columns: ColumnDef<Transaction>[] = [
   {
     accessorKey: "category.name",
     header: "Category",
-  },
-  {
-    accessorKey: "type",
-    header: "Type",
-  },
-  {
-    accessorKey: "description",
-    header: "Description",
-    cell: ({ row }) => {
-      return <div>{row.getValue("description") || "—"}</div>;
-    },
   },
   {
     id: "actions",
