@@ -9,6 +9,7 @@ export const getAll = async (req: Request, res: Response) => {
     // Set filter condition
     const where: any = {
       userId: Number(userId),
+      deletedAt: null,
     };
 
     // Handle filter by year
@@ -56,6 +57,7 @@ export const getAll = async (req: Request, res: Response) => {
         },
         where: {
           userId: Number(userId),
+          deletedAt: null,
         },
       })
       .then((transactions) => transactions.map((tx) => tx.date.getFullYear()));
@@ -99,6 +101,7 @@ export const create = async (req: Request, res: Response) => {
         date: {
           gte: new Date(date),
         },
+        deletedAt: null,
       },
       data: {
         balance:
@@ -182,6 +185,7 @@ export const update = async (req: Request, res: Response) => {
         date: {
           gte: new Date(date),
         },
+        deletedAt: null,
       },
       data: {
         balance:
