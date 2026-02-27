@@ -1,3 +1,14 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -36,7 +47,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { format } from "date-fns";
-import { CalendarIcon, Plus, PlusIcon, Search } from "lucide-react";
+import { CalendarIcon, Plus, PlusIcon, Search, Trash2Icon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -75,6 +86,8 @@ export default function TransactionPage() {
   const [showTransactionTypeDialog, setShowTransactionTypeDialog] =
     useState(false);
   const [showTransactionDialog, setShowTransactionDialog] = useState(false);
+  const [showTransactionDeleteDialog, setShowTransactionDeleteDialog] =
+    useState(false);
   const [openCategoryPopover, setOpenCategoryPopover] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string>(
     new Date().getFullYear().toString(),
@@ -202,6 +215,29 @@ export default function TransactionPage() {
     transactionForm.reset();
   };
 
+  const onDeleteSubmit = async (id: string) => {
+    console.log(id);
+    const url = `${import.meta.env.VITE_API_URL}/transaction/${id}`;
+    try {
+      const res = await axios.delete(url, {
+        withCredentials: true,
+      });
+      console.log(res);
+      if (res.status === 200) {
+        await fetchData();
+        refetchUser();
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error(err.response?.data || err.message);
+      alert("Transaction deletion failed.");
+      return;
+    }
+    setShowTransactionDialog(false);
+    setIsEditTransaction(false);
+    transactionForm.reset();
+  };
+
   async function onCategorySubmit(data: z.infer<typeof CategoryFormSchema>) {
     const url = `${import.meta.env.VITE_API_URL}/transaction/category`;
     try {
@@ -296,7 +332,10 @@ export default function TransactionPage() {
               setShowTransactionDialog(true);
             },
             onDelete: (id) => {
-              console.log("Delete transaction with id:", id);
+              transactionForm.reset({
+                id: String(id),
+              });
+              setShowTransactionDeleteDialog(true);
             },
           })}
           data={data}
@@ -592,6 +631,41 @@ export default function TransactionPage() {
           </Form>
         </DialogContent>
       </Dialog>
+
+      {/* Transaction Delete Confirmation Dialog */}
+      <AlertDialog
+        open={showTransactionDeleteDialog}
+        onOpenChange={setShowTransactionDeleteDialog}
+      >
+        <AlertDialogContent size="sm">
+          <AlertDialogHeader>
+            <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+              <Trash2Icon />
+            </AlertDialogMedia>
+            <AlertDialogTitle>Delete transaction?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this transaction? This action
+              cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              variant="outline"
+              onClick={() => transactionForm.reset()}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() =>
+                onDeleteSubmit(transactionForm.getValues("id") || "")
+              }
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
