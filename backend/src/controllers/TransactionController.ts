@@ -158,7 +158,6 @@ export const update = async (req: Request, res: Response) => {
     });
 
     const amountDifference = BigInt(amount - oldTransaction.amount);
-    console.log("Amount difference:", amountDifference.toString());
 
     const user = await prisma.user.findUniqueOrThrow({
       select: { balance: true },
@@ -223,6 +222,86 @@ export const update = async (req: Request, res: Response) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Transaction update failed" });
+  }
+};
+
+// SOFT DELETE TRANSACTION
+export const destroy = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+    const id = req.params.id;
+
+    if (!id) {
+      return res.status(400).json({ message: "Transaction ID is required" });
+    }
+
+    const selectedTransaction = await prisma.transaction.findFirstOrThrow({
+      where: {
+        id: Number(id),
+        userId: Number(userId),
+      },
+    });
+
+    // Checks if the transaction is already deleted
+    if (selectedTransaction.deletedAt) {
+      return res.status(400).json({ message: "Transaction already deleted" });
+    }
+
+    const user = await prisma.user.findUniqueOrThrow({
+      select: { balance: true },
+      where: { id: userId },
+    });
+
+    const updatedBalance =
+      selectedTransaction.type === "Income"
+        ? user.balance - BigInt(selectedTransaction.amount)
+        : user.balance + BigInt(selectedTransaction.amount);
+
+    await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        balance: updatedBalance,
+      },
+    });
+
+    await prisma.transaction.updateMany({
+      where: {
+        userId: Number(userId),
+        id: {
+          not: Number(id), // Exclude the deleted transaction itself from balance adjustment
+        },
+        date: {
+          gte: new Date(selectedTransaction.date),
+        },
+        deletedAt: null,
+      },
+      data: {
+        balance:
+          selectedTransaction.type === "Income"
+            ? { decrement: BigInt(selectedTransaction.amount) }
+            : { increment: BigInt(selectedTransaction.amount) },
+      },
+    });
+
+    // Update deletedAt for soft deleting
+    await prisma.transaction.update({
+      where: {
+        id: Number(id),
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
+
+    res.status(200).json({
+      message: "Transaction deleted",
+      transactionId: id,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Transaction delete failed" });
   }
 };
 
